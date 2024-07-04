@@ -7,11 +7,14 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
@@ -31,10 +34,15 @@ import androidx.compose.ui.unit.dp
 
 @Composable
 fun DiceRoller() {
-    var dieValue by remember { mutableStateOf(1) }
+    var die1Value by remember { mutableStateOf(1) }
+    var die2Value by remember { mutableStateOf(1) }
     var isRolling by remember { mutableStateOf(false) }
-    val angle by animateFloatAsState(
-        targetValue = if (isRolling) 360f * 5 else 0f, // Rotate 5 times
+    val angle1 by animateFloatAsState(
+        targetValue = if (isRolling) 360f * 5 else 0f,
+        animationSpec = tween(durationMillis = 500, easing = LinearEasing)
+    )
+    val angle2 by animateFloatAsState(
+        targetValue = if (isRolling) 360f * 5 else 0f,
         animationSpec = tween(durationMillis = 500, easing = LinearEasing)
     )
 
@@ -43,28 +51,39 @@ fun DiceRoller() {
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Box(
-            modifier = Modifier
-                .graphicsLayer { rotationZ = angle }
-                .size(64.dp)
-                .background(Color.Red, shape = RoundedCornerShape(4.dp))
-                .padding(8.dp),
-            contentAlignment = Alignment.Center
+        Row( // Use a Row to place dice horizontally
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.Center
         ) {
-            // Logic to display dots based on 'dieValue'
-            Die(value = dieValue)
+            DieBox(value = die1Value, angle = angle1)
+            Spacer(modifier = Modifier.width(16.dp)) // Space between dice
+            DieBox(value = die2Value, angle = angle2)
         }
         Spacer(modifier = Modifier.height(16.dp))
-        Button(onClick = { isRolling = true }) {
+        Button(onClick = {
+            isRolling = true
+            die1Value = (1..6).random()
+            die2Value = (1..6).random()
+        }) {
             Text("Roll")
         }
 
         // Trigger side effect when angle changes
-        LaunchedEffect(key1 = angle) {
-            if (isRolling && angle < 360f * 5) { // Only when spinning
-                dieValue = (1..6).random()
+        LaunchedEffect(key1 = angle1) {
+            if (isRolling && angle1 < 360f * 5) { // Only when spinning
+                die1Value = (1..6).random()
             }
-            if (angle == 360f * 5) { // Reset isRolling when animation ends
+            if (angle1 == 360f * 5) { // Reset isRolling when animation ends
+                isRolling = false
+            }
+        }
+
+        // Trigger side effect when angle changes
+        LaunchedEffect(key1 = angle2) {
+            if (isRolling && angle2 < 360f * 5) { // Only when spinning
+                die2Value = (1..6).random()
+            }
+            if (angle2 == 360f * 5) { // Reset isRolling when animation ends
                 isRolling = false
             }
         }
@@ -72,9 +91,10 @@ fun DiceRoller() {
 }
 
 @Composable
-fun Die(value: Int) {
+fun DieBox(value: Int, angle: Float) {
     Box(
         modifier = Modifier
+            .graphicsLayer { rotationZ = angle }
             .size(64.dp)
             .background(Color.Red, shape = RoundedCornerShape(4.dp))
             .padding(8.dp),
