@@ -1,5 +1,7 @@
 package com.appballstudio.samplesallday.ui.dicee
 
+import androidx.compose.animation.core.LinearEasing
+import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.animateIntAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
@@ -16,6 +18,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -25,20 +28,49 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.unit.dp
+import kotlinx.coroutines.delay
 
 @Composable
 fun DiceRoller() {
     var dieValue by remember { mutableStateOf(1) }
+    var isRolling by remember { mutableStateOf(false) }
+    val angle by animateFloatAsState(
+        targetValue = if (isRolling) 360f * 5 else 0f, // Rotate 5 times
+        animationSpec = tween(durationMillis = 500, easing = LinearEasing)
+    )
 
-    Column(modifier = Modifier.fillMaxSize(),
+    Column(
+        modifier = Modifier.fillMaxSize(),
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Die(value = dieValue)
+        Box(
+            modifier = Modifier
+                .graphicsLayer { rotationZ = angle }
+                .size(64.dp)
+                .background(Color.White, shape = RoundedCornerShape(4.dp))
+                .padding(8.dp),
+            contentAlignment = Alignment.Center
+        ) {
+            // Logic to display dots based on 'dieValue'
+            Die(value = dieValue)
+        }
         Spacer(modifier = Modifier.height(16.dp))
-        Button(onClick = { dieValue = (1..6).random() }) {
+        Button(onClick = {
+            isRolling = true
+            dieValue = (1..6).random()
+        }) {
             Text("Roll")
+        }
+
+        // Reset isRolling after animation completes
+        LaunchedEffect(key1 = dieValue) {
+            if (isRolling) {
+                delay(500)
+                isRolling = false
+            }
         }
     }
 }
