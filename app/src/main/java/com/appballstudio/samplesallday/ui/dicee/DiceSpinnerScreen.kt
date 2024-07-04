@@ -21,10 +21,12 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.MutableIntState
+import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -34,17 +36,9 @@ import androidx.compose.ui.unit.dp
 
 @Composable
 fun DiceRoller() {
-    var die1Value by remember { mutableStateOf(1) }
-    var die2Value by remember { mutableStateOf(1) }
-    var isRolling by remember { mutableStateOf(false) }
-    val angle1 by animateFloatAsState(
-        targetValue = if (isRolling) 360f * 5 else 0f,
-        animationSpec = tween(durationMillis = 500, easing = LinearEasing)
-    )
-    val angle2 by animateFloatAsState(
-        targetValue = if (isRolling) 360f * 5 else 0f,
-        animationSpec = tween(durationMillis = 500, easing = LinearEasing)
-    )
+    val die1Value = remember { mutableIntStateOf(1) }
+    val die2Value = remember { mutableIntStateOf(1) }
+    val isRolling = remember { mutableStateOf(false) }
 
     Column(
         modifier = Modifier.fillMaxSize(),
@@ -55,43 +49,43 @@ fun DiceRoller() {
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.Center
         ) {
-            DieBox(value = die1Value, angle = angle1)
+            Die(die1Value, isRolling)
             Spacer(modifier = Modifier.width(16.dp)) // Space between dice
-            DieBox(value = die2Value, angle = angle2)
+            Die(die2Value, isRolling)
         }
         Spacer(modifier = Modifier.height(16.dp))
         Button(onClick = {
-            isRolling = true
-            die1Value = (1..6).random()
-            die2Value = (1..6).random()
+            isRolling.value = true
+            die1Value.intValue = (1..6).random()
+            die2Value.intValue = (1..6).random()
         }) {
             Text("Roll")
-        }
-
-        // Trigger side effect when angle changes
-        LaunchedEffect(key1 = angle1) {
-            if (isRolling && angle1 < 360f * 5) { // Only when spinning
-                die1Value = (1..6).random()
-            }
-            if (angle1 == 360f * 5) { // Reset isRolling when animation ends
-                isRolling = false
-            }
-        }
-
-        // Trigger side effect when angle changes
-        LaunchedEffect(key1 = angle2) {
-            if (isRolling && angle2 < 360f * 5) { // Only when spinning
-                die2Value = (1..6).random()
-            }
-            if (angle2 == 360f * 5) { // Reset isRolling when animation ends
-                isRolling = false
-            }
         }
     }
 }
 
 @Composable
-fun DieBox(value: Int, angle: Float) {
+fun Die(dieValue: MutableIntState, isRolling: MutableState<Boolean>) {
+    val angle by animateFloatAsState(
+        targetValue = if (isRolling.value) 360f * 5 else 0f, // Rotate 5 times
+        animationSpec = tween(durationMillis = 500, easing = LinearEasing)
+    )
+
+    DieBox(dieValue = dieValue, angle = angle)
+
+    // Trigger side effect when angle changes
+    LaunchedEffect(key1 = angle) {
+        if (isRolling.value && angle < 360f * 5) { // Only when spinning
+            dieValue.intValue = (1..6).random()
+        }
+        if (angle == 360f * 5) { // Reset isRolling when animation ends
+            isRolling.value = false
+        }
+    }
+}
+
+@Composable
+fun DieBox(dieValue: MutableIntState, angle: Float) {
     Box(
         modifier = Modifier
             .graphicsLayer { rotationZ = angle }
@@ -100,7 +94,7 @@ fun DieBox(value: Int, angle: Float) {
             .padding(8.dp),
         contentAlignment = Alignment.Center
     ) {
-        when (value) {
+        when (dieValue.intValue) {
             1 -> Dot(Modifier.align(Alignment.Center))
             2 -> {
                 Dot(Modifier.align(Alignment.TopStart))
