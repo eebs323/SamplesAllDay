@@ -47,7 +47,7 @@ fun DiceRoller() {
             modifier = Modifier
                 .graphicsLayer { rotationZ = angle }
                 .size(64.dp)
-                .background(Color.White, shape = RoundedCornerShape(4.dp))
+                .background(Color.Red, shape = RoundedCornerShape(4.dp))
                 .padding(8.dp),
             contentAlignment = Alignment.Center
         ) {
@@ -76,7 +76,7 @@ fun Die(value: Int) {
     Box(
         modifier = Modifier
             .size(64.dp)
-            .background(Color.White, shape = RoundedCornerShape(4.dp))
+            .background(Color.Red, shape = RoundedCornerShape(4.dp))
             .padding(8.dp),
         contentAlignment = Alignment.Center
     ) {
