@@ -1,4 +1,4 @@
-package com.appballstudio.samplesallday.ui.dicee
+package com.appballstudio.dicebomb.ui
 
 import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.animateFloatAsState
@@ -68,7 +68,8 @@ fun DiceRoller() {
 fun Die(dieValue: MutableIntState, isRolling: MutableState<Boolean>) {
     val angle by animateFloatAsState(
         targetValue = if (isRolling.value) 360f * 5 else 0f, // Rotate 5 times
-        animationSpec = tween(durationMillis = 500, easing = LinearEasing)
+        animationSpec = tween(durationMillis = 500, easing = LinearEasing),
+        label = ""
     )
 
     DieBox(dieValue = dieValue, angle = angle)
