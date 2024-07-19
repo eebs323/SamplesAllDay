@@ -15,6 +15,7 @@ googleAndroidLibrariesMapsplatformSecretsGradlePlugin = "2.0.1"
 #material = "1.10.0"
 retrofit2 = "2.11.0"
 retrofit2Adapter = "0.9.2"
+koin-bom = "3.5.6"
 
 [libraries]
 #androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
@@ -38,6 +39,9 @@ androidx-material3 = { group = "androidx.compose.material3", name = "material3" 
 retrofit2 = { group = "com.squareup.retrofit2", name = "retrofit", version.ref = "retrofit2" }
 retrofit2-converter-gson = { group = "com.squareup.retrofit2", name = "converter-gson", version.ref = "retrofit2" }
 retrofit2-coroutines-adapter = { group = "com.jakewharton.retrofit", name = "retrofit2-kotlin-coroutines-adapter", version.ref = "retrofit2Adapter" }
+koin-bom = { module = "io.insert-koin:koin-bom", version.ref = "koin-bom" }
+koin-core = { module = "io.insert-koin:koin-core" }
+koin-android = { module = "io.insert-koin:koin-android" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

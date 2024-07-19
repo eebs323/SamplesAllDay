@@ -27,8 +27,15 @@ android {
 dependencies {
     implementation(project(":domain"))
 
+    // Retrofit
     implementation(libs.retrofit2)
     implementation(libs.retrofit2.converter.gson)
     implementation(libs.retrofit2.coroutines.adapter)
+
+    // Koin
+    implementation(platform(libs.koin.bom))
+    implementation(libs.koin.core)
+
+
     testImplementation(libs.junit)
 }
