@@ -14,6 +14,7 @@
             <option value="$PROJECT_DIR$/domain" />
             <option value="$PROJECT_DIR$/presentation" />
             <option value="$PROJECT_DIR$/presentation/dicebomb" />
+            <option value="$PROJECT_DIR$/presentation/foody" />
           </set>
         </option>
         <option name="resolveExternalAnnotations" value="false" />

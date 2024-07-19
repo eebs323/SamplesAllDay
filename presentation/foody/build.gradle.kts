@@ -4,7 +4,7 @@ plugins {
 }
 
 android {
-    namespace = "com.appballstudio.data"
+    namespace = "com.appballstudio.foody"
     compileSdk = 34
 
     defaultConfig {
@@ -22,11 +22,18 @@ android {
     kotlinOptions {
         jvmTarget = "1.8"
     }
+    buildFeatures {
+        compose = true
+        buildConfig = true
+    }
+    composeOptions {
+        kotlinCompilerExtensionVersion = "1.5.1"
+    }
 }
 
 dependencies {
-    implementation(libs.retrofit2)
-    implementation(libs.retrofit2.converter.gson)
-    implementation(libs.retrofit2.coroutines.adapter)
+    implementation(platform(libs.androidx.compose.bom))
+    implementation(libs.androidx.ui)
+    implementation(libs.androidx.material3)
     testImplementation(libs.junit)
 }
