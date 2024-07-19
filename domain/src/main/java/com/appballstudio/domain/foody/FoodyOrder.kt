@@ -1,6 +1,6 @@
 package com.appballstudio.domain.foody
 
-data class Order(
+data class FoodyOrder(
     val id: String,
     val state: String,
     val price: Int,
