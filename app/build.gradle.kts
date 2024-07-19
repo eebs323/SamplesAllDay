@@ -53,6 +53,7 @@ android {
 
 dependencies {
     implementation(project(":presentation:dicebomb"))
+    implementation(project(":presentation:foody"))
     implementation(project(":data"))
 
     // Compose
@@ -64,6 +65,7 @@ dependencies {
     // Koin
     implementation(platform(libs.koin.bom))
     implementation(libs.koin.android)
+    implementation(libs.androidx.navigation.compose)
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
