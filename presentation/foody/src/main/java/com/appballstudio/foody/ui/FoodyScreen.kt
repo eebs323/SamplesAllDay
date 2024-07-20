@@ -1,18 +1,18 @@
-package com.appballstudio.dicebomb.ui
+package com.appballstudio.foody.ui
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 
+const val ROUTE_FOODY = "ROUTE_FOODY"
+
 @Composable
-fun FoodyScreen(navController: androidx.navigation.NavHostController) {
+fun FoodyScreen() {
     Surface(
         modifier = Modifier.fillMaxSize(),
         color = MaterialTheme.colorScheme.background
@@ -22,12 +22,7 @@ fun FoodyScreen(navController: androidx.navigation.NavHostController) {
             verticalArrangement = Arrangement.Center,
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Button(onClick = { navController.navigate("diceroller") }) {
-                Text("DiceRoller")
-            }
-//            Button(onClick = { navController.navigate("fragment2") }) {
-//                Text("Go to Fragment 2")
-//            }
+
         }
     }
 }

@@ -40,5 +40,8 @@ dependencies {
     // Navigation
     implementation(libs.androidx.navigation.compose)
 
+
+    implementation(libs.androidx.fragment.ktx)
+
     testImplementation(libs.junit)
 }

@@ -12,7 +12,8 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.appballstudio.dicebomb.ui.DiceRoller
-import com.appballstudio.dicebomb.ui.FoodyScreen
+import com.appballstudio.foody.ui.FoodyFragment
+import com.appballstudio.foody.ui.ROUTE_FOODY
 import com.appballstudio.samplesallday.ui.theme.SamplesAllDayTheme
 
 class MainActivity : ComponentActivity() {
@@ -24,7 +25,7 @@ class MainActivity : ComponentActivity() {
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background,
                 ) {
-                    AppNavigation()
+                    MainNavigation()
                 }
             }
         }
@@ -32,10 +33,12 @@ class MainActivity : ComponentActivity() {
 }
 
 @Composable
-fun AppNavigation() {
+fun MainNavigation() {
     val navController = rememberNavController()
-    NavHost(navController = navController, startDestination = "foody") {
-        composable("foody") { FoodyScreen(navController) }
-        composable("diceroller") { DiceRoller() }
+    NavHost(
+        navController = navController,
+        startDestination = ROUTE_FOODY
+    ) {
+        composable(ROUTE_FOODY) { FoodyFragment.newInstance() }
     }
 }
