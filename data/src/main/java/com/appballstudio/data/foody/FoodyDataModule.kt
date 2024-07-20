@@ -17,7 +17,8 @@ val foodyDataModule = module {
             .create(FoodyApiService::class.java)
     }
     single {
-        get<Retrofit>(named(FOODY_RETROFIT)).create(FoodyApiService::class.java)
+        val foodyRetrofit = get<Retrofit>(named(FOODY_RETROFIT))
+        foodyRetrofit.create(FoodyApiService::class.java)
     }
     single {
         FoodyRepositoryImpl(foodyApiService = get<FoodyApiService>())

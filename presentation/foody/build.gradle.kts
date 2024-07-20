@@ -32,6 +32,8 @@ android {
 }
 
 dependencies {
+    implementation(project(":domain"))
+
     // Compose
     implementation(platform(libs.androidx.compose.bom))
     implementation(libs.androidx.ui)
@@ -40,8 +42,15 @@ dependencies {
     // Navigation
     implementation(libs.androidx.navigation.compose)
 
-
+    // Android
     implementation(libs.androidx.fragment.ktx)
+
+    // Koin
+    implementation(platform(libs.koin.bom))
+    implementation(libs.koin.android)
+
+    // Kotlin
+//    implementation(libs.kotlinx.coroutines)
 
     testImplementation(libs.junit)
 }

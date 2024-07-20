@@ -12,10 +12,16 @@ retrofit2Adapter = "0.9.2"
 koin-bom = "3.5.6"
 navigationCompose = "2.7.7"
 fragmentKtx = "1.8.1"
+coroutines = "1.7.3"
+navigationFragmentKtx = "2.7.7"
+#lifecycleLiveDataKtx = "2.8.3"
 
 [libraries]
 # Android
 androidx-fragment-ktx = { group = "androidx.fragment", name = "fragment-ktx", version.ref = "fragmentKtx" }
+
+# Kotlin
+kotlinx-coroutines = { group = "org.jetbrains.kotlinx", name="kotlinx-coroutines-android", version.ref = "coroutines"}
 
 # Compose
 androidx-material3 = { group = "androidx.compose.material3", name = "material3" }
@@ -38,6 +44,10 @@ koin-android = { module = "io.insert-koin:koin-android" }
 
 # Navigation
 androidx-navigation-compose = { group = "androidx.navigation", name = "navigation-compose", version.ref = "navigationCompose" }
+androidx-navigation-fragment-ktx = { group = "androidx.navigation", name = "navigation-fragment-ktx", version.ref = "navigationFragmentKtx" }
+
+# Lifecycle
+#androidx-lifecycle-livedata-ktx = { group = "androidx.lifecycle", name = "lifecycle-livedata-ktx", version.ref = "lifecycleLiveDataKtx" }
 
 # Testing
 junit = { group = "junit", name = "junit", version.ref = "junit" }
