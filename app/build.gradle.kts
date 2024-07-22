@@ -54,9 +54,9 @@ android {
 dependencies {
     // Libraries
     implementation(project(":presentation:dicebomb"))
-    implementation(project(":presentation:foody"))
-    implementation(project(":domain"))
-    implementation(project(":data"))
+//    implementation(project(":presentation:foody"))
+//    implementation(project(":domain"))
+//    implementation(project(":data"))
 
     // Android
     implementation(libs.androidx.fragment.ktx)

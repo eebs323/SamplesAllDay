@@ -11,7 +11,7 @@ import com.appballstudio.samplesallday.ui.foody.theme.LightBlue
 import com.appballstudio.samplesallday.ui.foody.theme.LightGray
 import com.appballstudio.samplesallday.ui.foody.theme.LightGreen
 import com.appballstudio.samplesallday.ui.foody.theme.LightRed
-import com.appballstudio.samplesallday.ui.foody.theme.LightYellow
+import com.appballstudio.samplesallday.ui.foody.theme.Orange
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -49,7 +49,7 @@ class FoodyViewModelImpl(val foodyRepository: FoodyRepository) : ViewModel(), Fo
             Shelf.HOT.name -> LightRed
             Shelf.COLD.name -> LightBlue
             Shelf.FROZEN.name -> LightGray
-            Shelf.OVERFLOW.name -> LightYellow
+            Shelf.OVERFLOW.name -> Orange
             Shelf.NONE.name -> LightGreen
             else -> MaterialTheme.colorScheme.surface
         }

@@ -34,6 +34,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.unit.dp
 
+const val ROUTE_DICEY = "ROUTE_DICEY"
+
 @Composable
 fun DiceRoller() {
     val die1Value = remember { mutableIntStateOf(1) }
