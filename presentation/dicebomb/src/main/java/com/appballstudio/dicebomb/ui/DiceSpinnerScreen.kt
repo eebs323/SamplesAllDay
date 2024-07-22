@@ -34,7 +34,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.unit.dp
 
-const val ROUTE_DICEY = "ROUTE_DICEY"
+const val NAV_ROUTE_DICEY = "ROUTE_DICEY"
 
 @Composable
 fun DiceRoller() {
@@ -52,7 +52,7 @@ fun DiceRoller() {
             horizontalArrangement = Arrangement.Center
         ) {
             Die(die1Value, isRolling)
-            Spacer(modifier = Modifier.width(16.dp)) // Space between dice
+            Spacer(modifier = Modifier.width(16.dp))
             Die(die2Value, isRolling)
         }
         Spacer(modifier = Modifier.height(16.dp))

@@ -36,7 +36,7 @@ import com.appballstudio.samplesallday.domain.FoodyOrder
 import kotlinx.coroutines.launch
 import org.koin.androidx.compose.koinViewModel
 
-const val ROUTE_FOODY = "ROUTE_FOODY"
+const val NAV_ROUTE_FOODY = "ROUTE_FOODY"
 
 @OptIn(ExperimentalMaterialApi::class)
 @Composable
@@ -77,17 +77,17 @@ private fun ObserveViewState(
         modifier = Modifier.fillMaxSize(),
         color = MaterialTheme.colorScheme.background
     ) {
-        Box(
+        Box( // Pull to refresh behavior
             modifier = Modifier.pullRefresh(pullRefreshState)
         ) {
-            Box(
+            Box( // Orders List
                 modifier = Modifier.fillMaxSize(),
                 contentAlignment = Alignment.Center
             ) {
                 when (orderViewState) {
                     is OrderViewState.Loading -> CircularProgressIndicator()
-                    is OrderViewState.Success -> OnGetOrdersSuccess(orderViewState = orderViewState as OrderViewState.Success)
-                    is OrderViewState.Error -> Text(text = (orderViewState as OrderViewState.Error).message)
+                    is OrderViewState.Success -> OnGetOrdersSuccess(orderViewState = orderViewState)
+                    is OrderViewState.Error -> Text(text = orderViewState.message)
                 }
             }
             PullRefreshIndicator(
@@ -98,7 +98,6 @@ private fun ObserveViewState(
         }
     }
 }
-
 
 @Composable
 private fun OnGetOrdersSuccess(
@@ -121,8 +120,8 @@ private fun OnGetOrdersSuccess(
 
 @Composable
 fun FoodyOrderList(orders: List<FoodyOrder>) {
-    LazyColumn {
-        items(orders) { order ->
+    LazyColumn { // vertically scrolling list
+        items(orders) { order -> //iterate through orders
             OrderCard(
                 order = order
             )
