@@ -10,6 +10,10 @@ data class FoodyOrder(
     val destination: String,
 )
 
+enum class Shelf {
+    HOT, COLD, FROZEN, OVERFLOW, NONE
+}
+
 val mockFoodyOrders: List<FoodyOrder> = listOf(
     FoodyOrder(
         id = "id1",

@@ -7,6 +7,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.appballstudio.samplesallday.data.foody.FoodyRepository
 import com.appballstudio.samplesallday.domain.FoodyOrder
+import com.appballstudio.samplesallday.domain.Shelf
 import com.appballstudio.samplesallday.ui.foody.theme.LightBlue
 import com.appballstudio.samplesallday.ui.foody.theme.LightGray
 import com.appballstudio.samplesallday.ui.foody.theme.LightGreen
@@ -19,7 +20,6 @@ import kotlinx.coroutines.launch
 
 interface FoodyViewModel {
     val orderViewState: StateFlow<OrderViewState>
-    suspend fun getOrders(): List<FoodyOrder>
     fun loadOrders()
 
     @Composable
@@ -30,12 +30,11 @@ class FoodyViewModelImpl(val foodyRepository: FoodyRepository) : ViewModel(), Fo
     private val _orderViewState = MutableStateFlow<OrderViewState>(OrderViewState.Loading)
     override val orderViewState = _orderViewState.asStateFlow()
 
-    override suspend fun getOrders() = foodyRepository.getOrders()
-
     override fun loadOrders() {
         viewModelScope.launch {
+            _orderViewState.value = OrderViewState.Loading
             try {
-                val orders = foodyRepository.getOrders()
+                val orders = foodyRepository.getOrders()!!
                 _orderViewState.value = OrderViewState.Success(orders)
             } catch (e: Exception) {
                 _orderViewState.value = OrderViewState.Error("Failed to load orders")
@@ -53,10 +52,6 @@ class FoodyViewModelImpl(val foodyRepository: FoodyRepository) : ViewModel(), Fo
             Shelf.NONE.name -> LightGreen
             else -> MaterialTheme.colorScheme.surface
         }
-    }
-
-    enum class Shelf {
-        HOT, COLD, FROZEN, OVERFLOW, NONE
     }
 
 }

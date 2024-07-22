@@ -7,19 +7,18 @@ import com.appballstudio.samplesallday.extensions.TAG
 import kotlinx.coroutines.delay
 
 interface FoodyRepository {
-    suspend fun getOrders(): List<FoodyOrder>
+    suspend fun getOrders(): List<FoodyOrder>?
 }
 
 class FoodyRepositoryImpl(private val foodyApiService: FoodyApiService) : FoodyRepository {
 
-    override suspend fun getOrders(): List<FoodyOrder> {
+    override suspend fun getOrders(): List<FoodyOrder>? {
         return try {
-            delay(3000)
-//            foodyApiService.orders()
-            mockFoodyOrders
+            delay(1000)
+            foodyApiService.orders()
         } catch (e: Exception) {
             Log.e(TAG, "getOrders failed", e)
-            listOf()
+            null
         }
     }
 }
