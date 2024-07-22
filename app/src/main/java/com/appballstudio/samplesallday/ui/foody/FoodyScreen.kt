@@ -78,17 +78,15 @@ private fun ObserveViewState(
         color = MaterialTheme.colorScheme.background
     ) {
         Box( // Pull to refresh behavior
-            modifier = Modifier.pullRefresh(pullRefreshState)
+            modifier = Modifier
+                .fillMaxSize()
+                .pullRefresh(pullRefreshState),
+            contentAlignment = Alignment.Center
         ) {
-            Box( // Orders List
-                modifier = Modifier.fillMaxSize(),
-                contentAlignment = Alignment.Center
-            ) {
-                when (orderViewState) {
-                    is OrderViewState.Loading -> CircularProgressIndicator()
-                    is OrderViewState.Success -> OnGetOrdersSuccess(orderViewState = orderViewState)
-                    is OrderViewState.Error -> Text(text = orderViewState.message)
-                }
+            when (orderViewState) {
+                is OrderViewState.Loading -> CircularProgressIndicator()
+                is OrderViewState.Success -> OnGetOrdersSuccess(orderViewState = orderViewState)
+                is OrderViewState.Error -> Text(text = orderViewState.message)
             }
             PullRefreshIndicator(
                 refreshing = refreshing,
