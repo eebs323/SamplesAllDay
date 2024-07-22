@@ -59,7 +59,6 @@ dependencies {
 //    implementation(project(":data"))
 
     // Android
-    implementation(libs.androidx.fragment.ktx)
     implementation(libs.androidx.activity.ktx)
 
     // Compose
@@ -76,7 +75,6 @@ dependencies {
 
     // Navigation
     implementation(libs.androidx.navigation.compose)
-    implementation(libs.androidx.navigation.fragment.ktx)
 
     // Lifecycle
     implementation(libs.androidx.lifecycle.runtime.ktx)
@@ -85,11 +83,6 @@ dependencies {
     implementation(libs.retrofit2)
     implementation(libs.retrofit2.converter.gson)
     implementation(libs.retrofit2.coroutines.adapter)
-
-    // Koin
-    implementation(platform(libs.koin.bom))
-    implementation(libs.koin.android)
-    implementation(libs.koin.core)
 
     // Testing
     testImplementation(libs.junit)

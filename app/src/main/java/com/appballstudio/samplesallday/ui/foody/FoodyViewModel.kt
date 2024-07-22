@@ -6,7 +6,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.appballstudio.samplesallday.domain.foody.repository.FoodyRepository
-import com.appballstudio.samplesallday.domain.foody.model.FoodyOrder
+import com.appballstudio.samplesallday.domain.foody.model.FoodyOrderDto
 import com.appballstudio.samplesallday.domain.foody.model.Shelf
 import com.appballstudio.samplesallday.ui.foody.theme.LightBlue
 import com.appballstudio.samplesallday.ui.foody.theme.LightGray
@@ -23,7 +23,7 @@ interface FoodyViewModel {
     fun loadOrders()
 
     @Composable
-    fun getOrderCardBackgroundColor(order: FoodyOrder): Color
+    fun getOrderCardBackgroundColor(order: FoodyOrderDto): Color
 }
 
 class FoodyViewModelImpl(val foodyRepository: FoodyRepository) : ViewModel(), FoodyViewModel {
@@ -43,7 +43,7 @@ class FoodyViewModelImpl(val foodyRepository: FoodyRepository) : ViewModel(), Fo
     }
 
     @Composable
-    override fun getOrderCardBackgroundColor(order: FoodyOrder): Color {
+    override fun getOrderCardBackgroundColor(order: FoodyOrderDto): Color {
         return when (order.shelf) {
             Shelf.HOT.name -> LightRed
             Shelf.COLD.name -> LightBlue
@@ -58,6 +58,6 @@ class FoodyViewModelImpl(val foodyRepository: FoodyRepository) : ViewModel(), Fo
 
 sealed class OrderViewState {
     data object Loading : OrderViewState()
-    data class Success(val orders: List<FoodyOrder>) : OrderViewState()
+    data class Success(val orders: List<FoodyOrderDto>) : OrderViewState()
     data class Error(val message: String) : OrderViewState()
 }

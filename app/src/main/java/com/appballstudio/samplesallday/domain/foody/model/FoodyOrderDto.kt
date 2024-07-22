@@ -1,6 +1,6 @@
 package com.appballstudio.samplesallday.domain.foody.model
 
-data class FoodyOrder(
+data class FoodyOrderDto(
     val id: String,
     val state: String,
     val price: Int,
@@ -14,8 +14,8 @@ enum class Shelf {
     HOT, COLD, FROZEN, OVERFLOW, NONE
 }
 
-val mockFoodyOrders: List<FoodyOrder> = listOf(
-    FoodyOrder(
+val mockFoodyOrderDtos: List<FoodyOrderDto> = listOf(
+    FoodyOrderDto(
         id = "id1",
         state = "CREATED",
         price = 100,
@@ -24,7 +24,7 @@ val mockFoodyOrders: List<FoodyOrder> = listOf(
         timestamp = 10000,
         destination = "destination1"
     ),
-    FoodyOrder(
+    FoodyOrderDto(
         id = "id2",
         state = "COOKING",
         price = 200,
@@ -33,7 +33,7 @@ val mockFoodyOrders: List<FoodyOrder> = listOf(
         timestamp = 20000,
         destination = "destination2"
     ),
-    FoodyOrder(
+    FoodyOrderDto(
         id = "id3",
         state = "WAITING",
         price = 300,
@@ -42,7 +42,7 @@ val mockFoodyOrders: List<FoodyOrder> = listOf(
         timestamp = 30000,
         destination = "destination3"
     ),
-    FoodyOrder(
+    FoodyOrderDto(
         id = "id4",
         state = "DELIVERED",
         price = 400,

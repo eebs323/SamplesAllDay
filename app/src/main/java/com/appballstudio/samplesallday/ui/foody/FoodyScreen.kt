@@ -32,7 +32,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.repeatOnLifecycle
-import com.appballstudio.samplesallday.domain.foody.model.FoodyOrder
+import com.appballstudio.samplesallday.domain.foody.model.FoodyOrderDto
 import kotlinx.coroutines.launch
 import org.koin.androidx.compose.koinViewModel
 
@@ -117,7 +117,7 @@ private fun OnGetOrdersSuccess(
 }
 
 @Composable
-fun FoodyOrderList(orders: List<FoodyOrder>) {
+fun FoodyOrderList(orders: List<FoodyOrderDto>) {
     LazyColumn { // vertically scrolling list
         items(orders) { order -> //iterate through orders
             OrderCard(
@@ -128,7 +128,7 @@ fun FoodyOrderList(orders: List<FoodyOrder>) {
 }
 
 @Composable
-fun OrderCard(order: FoodyOrder) {
+fun OrderCard(order: FoodyOrderDto) {
     val foodyViewModel: FoodyViewModel = koinViewModel<FoodyViewModelImpl>()
     val orderCardBackgroundColor = foodyViewModel.getOrderCardBackgroundColor(order)
     Card(
