@@ -56,7 +56,14 @@ fun FoodyScreen(lifecycle: Lifecycle) {
         })
 
     ObserveViewState(pullRefreshState, orderViewState, refreshing)
-    LoadOrders(lifecycle, refreshing, foodyViewModel)
+    LaunchedEffect(lifecycle) {
+        lifecycle.repeatOnLifecycle(Lifecycle.State.STARTED) {
+            if (refreshing) {
+                foodyViewModel.loadOrders()
+                refreshing = false
+            }
+        }
+    }
 }
 
 @Composable
@@ -88,23 +95,6 @@ private fun ObserveViewState(
                 state = pullRefreshState,
                 modifier = Modifier.align(Alignment.TopCenter)
             )
-        }
-    }
-}
-
-@Composable
-private fun LoadOrders(
-    lifecycle: Lifecycle,
-    refreshing: Boolean,
-    foodyViewModel: FoodyViewModel
-) {
-    var refreshing1 = refreshing
-    LaunchedEffect(lifecycle) {
-        lifecycle.repeatOnLifecycle(Lifecycle.State.STARTED) {
-            if (refreshing1) {
-                foodyViewModel.loadOrders()
-                refreshing1 = false
-            }
         }
     }
 }
