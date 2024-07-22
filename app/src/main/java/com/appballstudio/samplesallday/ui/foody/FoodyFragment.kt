@@ -1,4 +1,4 @@
-package com.appballstudio.foody.ui
+package com.appballstudio.samplesallday.ui.foody
 
 import android.os.Bundle
 import android.util.Log
@@ -19,7 +19,7 @@ class FoodyFragment : Fragment() {
         fun newInstance() = FoodyFragment()
     }
 
-    private val viewModel : FoodViewModel by viewModels()
+    private val viewModel : FoodyViewModel by viewModels()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -34,7 +34,7 @@ class FoodyFragment : Fragment() {
     ): View {
         val composeView = ComposeView(requireContext()).apply {
             setContent {
-                FoodyScreen()
+                FoodyScreen(lifecycle = viewLifecycleOwner.lifecycle)
             }
         }
         return composeView

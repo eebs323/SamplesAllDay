@@ -1,4 +1,4 @@
-package com.appballstudio.data.extensions
+package com.appballstudio.samplesallday.extensions
 
 val Any.TAG: String
     get() {

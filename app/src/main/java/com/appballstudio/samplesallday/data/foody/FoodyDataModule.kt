@@ -1,4 +1,4 @@
-package com.appballstudio.data.foody
+package com.appballstudio.samplesallday.data.foody
 
 import org.koin.core.qualifier.named
 import org.koin.dsl.module
@@ -14,11 +14,10 @@ val foodyDataModule = module {
             .baseUrl(FOODY_BASE_URL)
             .addConverterFactory(GsonConverterFactory.create())
             .build()
-            .create(FoodyApiService::class.java)
     }
     single {
         val foodyRetrofit = get<Retrofit>(named(FOODY_RETROFIT))
-        foodyRetrofit.create(FoodyApiService::class.java)
+        foodyRetrofit.create(FoodyApiService::class.java) as FoodyApiService
     }
     single {
         FoodyRepositoryImpl(foodyApiService = get<FoodyApiService>())

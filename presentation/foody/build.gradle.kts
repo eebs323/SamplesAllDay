@@ -33,6 +33,7 @@ android {
 
 dependencies {
     implementation(project(":domain"))
+    implementation(project(":data"))
 
     // Compose
     implementation(platform(libs.androidx.compose.bom))
@@ -48,6 +49,7 @@ dependencies {
     // Koin
     implementation(platform(libs.koin.bom))
     implementation(libs.koin.android)
+    implementation(libs.koin.compose)
 
     // Kotlin
 //    implementation(libs.kotlinx.coroutines)
