@@ -1,14 +1,11 @@
-package com.appballstudio.samplesallday.data.foody
+package com.appballstudio.samplesallday.data.foody.repository
 
 import android.util.Log
-import com.appballstudio.samplesallday.domain.FoodyOrder
-import com.appballstudio.samplesallday.domain.mockFoodyOrders
+import com.appballstudio.samplesallday.data.foody.remote.FoodyApiService
+import com.appballstudio.samplesallday.domain.foody.model.FoodyOrder
+import com.appballstudio.samplesallday.domain.foody.repository.FoodyRepository
 import com.appballstudio.samplesallday.extensions.TAG
 import kotlinx.coroutines.delay
-
-interface FoodyRepository {
-    suspend fun getOrders(): List<FoodyOrder>?
-}
 
 class FoodyRepositoryImpl(private val foodyApiService: FoodyApiService) : FoodyRepository {
 

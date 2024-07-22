@@ -1,5 +1,7 @@
-package com.appballstudio.samplesallday.data.foody
+package com.appballstudio.samplesallday.data.foody.di
 
+import com.appballstudio.samplesallday.data.foody.remote.FoodyApiService
+import com.appballstudio.samplesallday.data.foody.repository.FoodyRepositoryImpl
 import org.koin.core.qualifier.named
 import org.koin.dsl.module
 import retrofit2.Retrofit

@@ -32,7 +32,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.repeatOnLifecycle
-import com.appballstudio.samplesallday.domain.FoodyOrder
+import com.appballstudio.samplesallday.domain.foody.model.FoodyOrder
 import kotlinx.coroutines.launch
 import org.koin.androidx.compose.koinViewModel
 

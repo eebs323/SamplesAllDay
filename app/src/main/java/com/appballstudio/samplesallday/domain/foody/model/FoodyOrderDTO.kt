@@ -1,4 +1,4 @@
-package com.appballstudio.samplesallday.domain
+package com.appballstudio.samplesallday.domain.foody.model
 
 data class FoodyOrder(
     val id: String,

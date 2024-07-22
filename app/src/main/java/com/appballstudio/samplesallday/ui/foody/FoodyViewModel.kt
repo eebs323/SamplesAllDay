@@ -5,9 +5,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.appballstudio.samplesallday.data.foody.FoodyRepository
-import com.appballstudio.samplesallday.domain.FoodyOrder
-import com.appballstudio.samplesallday.domain.Shelf
+import com.appballstudio.samplesallday.domain.foody.repository.FoodyRepository
+import com.appballstudio.samplesallday.domain.foody.model.FoodyOrder
+import com.appballstudio.samplesallday.domain.foody.model.Shelf
 import com.appballstudio.samplesallday.ui.foody.theme.LightBlue
 import com.appballstudio.samplesallday.ui.foody.theme.LightGray
 import com.appballstudio.samplesallday.ui.foody.theme.LightGreen
