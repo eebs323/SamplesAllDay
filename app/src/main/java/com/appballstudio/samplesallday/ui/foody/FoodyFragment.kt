@@ -44,7 +44,7 @@ class FoodyFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
         viewLifecycleOwner.lifecycleScope.launch {
             viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
-                viewModel.stateFlowOrders.collect { orders ->
+                viewModel.orderViewState.collect { orders ->
                     Log.i("FoodyFragment", "Orders: $orders")
                 }
             }
