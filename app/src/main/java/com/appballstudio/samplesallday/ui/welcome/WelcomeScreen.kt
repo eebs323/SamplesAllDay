@@ -15,11 +15,12 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
-import com.appballstudio.dicebomb.ui.NAV_ROUTE_DICEY
-import com.appballstudio.samplesallday.ui.foody.NAV_ROUTE_FOODY
+import org.koin.androidx.compose.koinViewModel
 
 @Composable
-fun Welcome(navController: NavHostController) {
+fun WelcomeScreen(navController: NavHostController) {
+    val viewModel: WelcomeViewModel = koinViewModel<WelcomeViewModelImpl>()
+
     Surface(
         modifier = Modifier.fillMaxSize(),
         color = MaterialTheme.colorScheme.background
@@ -36,7 +37,7 @@ fun Welcome(navController: NavHostController) {
             )
             Spacer(modifier = Modifier.height(16.dp))
             Button(
-                onClick = { navController.navigate(NAV_ROUTE_FOODY) },
+                onClick = { viewModel.onViewOrdersClick(navController) },
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(horizontal = 24.dp)
@@ -45,7 +46,7 @@ fun Welcome(navController: NavHostController) {
             }
             Spacer(modifier = Modifier.height(8.dp))
             Button(
-                onClick = { navController.navigate(NAV_ROUTE_DICEY) },
+                onClick = { viewModel.onRollDiceClick(navController) },
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(horizontal = 24.dp)
