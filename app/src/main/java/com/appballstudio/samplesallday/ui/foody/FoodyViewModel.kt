@@ -5,14 +5,16 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.appballstudio.samplesallday.domain.foody.repository.FoodyRepository
 import com.appballstudio.samplesallday.domain.foody.model.FoodyOrderDto
 import com.appballstudio.samplesallday.domain.foody.model.Shelf
+import com.appballstudio.samplesallday.domain.foody.repository.FoodyRepository
 import com.appballstudio.samplesallday.ui.foody.theme.LightBlue
 import com.appballstudio.samplesallday.ui.foody.theme.LightGray
 import com.appballstudio.samplesallday.ui.foody.theme.LightGreen
 import com.appballstudio.samplesallday.ui.foody.theme.LightRed
 import com.appballstudio.samplesallday.ui.foody.theme.Orange
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -24,16 +26,20 @@ interface FoodyViewModel {
 
     @Composable
     fun getOrderCardBackgroundColor(order: FoodyOrderDto): Color
+    fun onRefresh()
 }
 
 class FoodyViewModelImpl(val foodyRepository: FoodyRepository) : ViewModel(), FoodyViewModel {
     private val _orderViewState = MutableStateFlow<OrderViewState>(OrderViewState.Loading)
     override val orderViewState = _orderViewState.asStateFlow()
+    private var ordersJob: Job? = null
 
     override fun loadOrders() {
-        viewModelScope.launch {
+        ordersJob?.cancel()
+        ordersJob = viewModelScope.launch {
             _orderViewState.value = OrderViewState.Loading
             try {
+                delay(1000)
                 val orders = foodyRepository.getOrders()!!
                 _orderViewState.value = OrderViewState.Success(orders)
             } catch (e: Exception) {
@@ -54,6 +60,9 @@ class FoodyViewModelImpl(val foodyRepository: FoodyRepository) : ViewModel(), Fo
         }
     }
 
+    override fun onRefresh() {
+        loadOrders()
+    }
 }
 
 sealed class OrderViewState {

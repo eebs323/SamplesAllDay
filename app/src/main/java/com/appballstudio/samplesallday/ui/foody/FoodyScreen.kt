@@ -23,17 +23,12 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.repeatOnLifecycle
 import com.appballstudio.samplesallday.domain.foody.model.FoodyOrderDto
-import kotlinx.coroutines.launch
 import org.koin.androidx.compose.koinViewModel
 
 const val NAV_ROUTE_FOODY = "ROUTE_FOODY"
@@ -41,55 +36,43 @@ const val NAV_ROUTE_FOODY = "ROUTE_FOODY"
 @OptIn(ExperimentalMaterialApi::class)
 @Composable
 fun FoodyScreen(lifecycle: Lifecycle) {
-    val foodyViewModel: FoodyViewModel = koinViewModel<FoodyViewModelImpl>()
-    val orderViewState by foodyViewModel.orderViewState.collectAsState()
-    var refreshing by remember { mutableStateOf(true) }
-    val refreshScope = rememberCoroutineScope()
-
+    val viewModel: FoodyViewModel = koinViewModel<FoodyViewModelImpl>()
+    val orderViewState by viewModel.orderViewState.collectAsState()
     val pullRefreshState = rememberPullRefreshState(
-        refreshing = refreshing,
+        refreshing = false,
         onRefresh = {
-            refreshScope.launch {
-                foodyViewModel.loadOrders()
-                refreshing = false
-            }
-        })
+            viewModel.onRefresh()
+        }
+    )
 
-    ObserveViewState(pullRefreshState, orderViewState, refreshing)
-    LaunchedEffect(lifecycle) {
+    FoodyContent(pullRefreshState, orderViewState)
+
+    LaunchedEffect(key1 = lifecycle) {
         lifecycle.repeatOnLifecycle(Lifecycle.State.STARTED) {
-            if (refreshing) {
-                foodyViewModel.loadOrders()
-                refreshing = false
-            }
+            viewModel.loadOrders() // load orders on startup
         }
     }
 }
 
 @Composable
 @OptIn(ExperimentalMaterialApi::class)
-private fun ObserveViewState(
+private fun FoodyContent(
     pullRefreshState: PullRefreshState,
     orderViewState: OrderViewState,
-    refreshing: Boolean
 ) {
-    Surface(
+    Surface( // Screen
         modifier = Modifier.fillMaxSize(),
         color = MaterialTheme.colorScheme.background
     ) {
-        Box( // Pull to refresh behavior
+        Box(
             modifier = Modifier
                 .fillMaxSize()
-                .pullRefresh(pullRefreshState),
+                .pullRefresh(pullRefreshState), // Pull to refresh behavior
             contentAlignment = Alignment.Center
         ) {
-            when (orderViewState) {
-                is OrderViewState.Loading -> CircularProgressIndicator()
-                is OrderViewState.Success -> OnGetOrdersSuccess(orderViewState = orderViewState)
-                is OrderViewState.Error -> Text(text = orderViewState.message)
-            }
+            ObserveViewState(orderViewState) // compose content based on view state
             PullRefreshIndicator(
-                refreshing = refreshing,
+                refreshing = false, // only show indicator when refresh action occurs
                 state = pullRefreshState,
                 modifier = Modifier.align(Alignment.TopCenter)
             )
@@ -98,7 +81,16 @@ private fun ObserveViewState(
 }
 
 @Composable
-private fun OnGetOrdersSuccess(
+private fun ObserveViewState(orderViewState: OrderViewState) {
+    when (orderViewState) {
+        is OrderViewState.Loading -> CircularProgressIndicator()
+        is OrderViewState.Success -> HandleGetOrdersSuccess(orderViewState = orderViewState)
+        is OrderViewState.Error -> Text(text = orderViewState.message)
+    }
+}
+
+@Composable
+private fun HandleGetOrdersSuccess(
     orderViewState: OrderViewState.Success
 ) {
     Column(
