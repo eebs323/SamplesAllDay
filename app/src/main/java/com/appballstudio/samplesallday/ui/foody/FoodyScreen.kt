@@ -23,12 +23,15 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.repeatOnLifecycle
 import com.appballstudio.samplesallday.domain.foody.model.FoodyOrderDto
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.launch
 import org.koin.androidx.compose.koinViewModel
 
 const val NAV_ROUTE_FOODY = "ROUTE_FOODY"
@@ -38,20 +41,26 @@ const val NAV_ROUTE_FOODY = "ROUTE_FOODY"
 fun FoodyScreen(lifecycle: Lifecycle) {
     val viewModel: FoodyViewModel = koinViewModel<FoodyViewModelImpl>()
     val orderViewState by viewModel.orderViewState.collectAsState()
+
+    val coroutineScope = rememberCoroutineScope()
     val pullRefreshState = rememberPullRefreshState(
         refreshing = false,
         onRefresh = {
-            viewModel.onRefresh()
+            coroutineScope.launch {
+                lifecycle.repeatOnLifecycle(Lifecycle.State.STARTED) {
+                    viewModel.onRefresh()
+                }
+            }
         }
     )
 
-    FoodyContent(pullRefreshState, orderViewState)
-
     LaunchedEffect(key1 = lifecycle) {
         lifecycle.repeatOnLifecycle(Lifecycle.State.STARTED) {
-            viewModel.loadOrders() // load orders on startup
+            viewModel.loadOrders()
         }
     }
+
+    FoodyContent(pullRefreshState, orderViewState)
 }
 
 @Composable
@@ -60,20 +69,20 @@ private fun FoodyContent(
     pullRefreshState: PullRefreshState,
     orderViewState: OrderViewState,
 ) {
-    Surface( // Screen
+    Surface(
         modifier = Modifier.fillMaxSize(),
         color = MaterialTheme.colorScheme.background
     ) {
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .pullRefresh(pullRefreshState), // Pull to refresh behavior
+                .pullRefresh(pullRefreshState),  // allow pull to refresh screen
             contentAlignment = Alignment.Center
         ) {
             ObserveViewState(orderViewState) // compose content based on view state
-            PullRefreshIndicator(
+            PullRefreshIndicator( // over compose content
                 refreshing = false, // only show indicator when refresh action occurs
-                state = pullRefreshState,
+                state = pullRefreshState, // Pull to refresh action
                 modifier = Modifier.align(Alignment.TopCenter)
             )
         }
