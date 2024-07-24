@@ -25,6 +25,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.repeatOnLifecycle
@@ -35,39 +36,29 @@ import org.koin.androidx.compose.koinViewModel
 const val NAV_ROUTE_FOODY = "ROUTE_FOODY"
 
 @Composable
-fun FoodyScreen(lifecycle: Lifecycle) {
-    val viewModel: FoodyViewModel = koinViewModel<FoodyViewModelImpl>()
-    val orderViewState by viewModel.orderViewState.collectAsState()
-    LoadOrders(viewModel, lifecycle)
-    FoodyContent(viewModel, lifecycle, orderViewState)
-}
-
-@Composable
-private fun LoadOrders(
-    viewModel: FoodyViewModel,
+fun FoodyScreen(
+    viewModel: FoodyViewModel = koinViewModel<FoodyViewModelImpl>(),
     lifecycle: Lifecycle
 ) {
     LaunchedEffect(key1 = lifecycle) { // coroutine tied to the lifecycle of the composable
-        lifecycle.repeatOnLifecycle(Lifecycle.State.STARTED) { // ensure loadOrders invoked only when lifecycle hits STARTED
-            viewModel.loadOrders()
-        }
+        viewModel.loadOrders(lifecycle)
     }
+    FoodyContent(lifecycle = lifecycle)
 }
 
 @Composable
 @OptIn(ExperimentalMaterialApi::class)
 private fun FoodyContent(
     viewModel: FoodyViewModel = koinViewModel<FoodyViewModelImpl>(),
-    lifecycle: Lifecycle,
-    orderViewState: OrderViewState
+    lifecycle: Lifecycle
 ) {
     val coroutineScope = rememberCoroutineScope()
-    val pullRefreshState = rememberPullRefreshState( // pull to refresh action
+    val pullRefreshState = rememberPullRefreshState(
         refreshing = false,
         onRefresh = {
             coroutineScope.launch {
                 lifecycle.repeatOnLifecycle(Lifecycle.State.STARTED) {
-                    viewModel.onRefresh()
+                    viewModel.onRefresh(lifecycle)
                 }
             }
         }
@@ -83,7 +74,7 @@ private fun FoodyContent(
                 .pullRefresh(pullRefreshState),  // add scroll behavior for pull to refresh
             contentAlignment = Alignment.Center
         ) {
-            ObserveViewState(orderViewState) // compose content based on view state
+            ObserveViewState() // compose content based on view state
             PullRefreshIndicator(
                 refreshing = false, // only show indicator when refresh action occurs
                 state = pullRefreshState, // Pull to refresh action
@@ -94,17 +85,26 @@ private fun FoodyContent(
 }
 
 @Composable
-private fun ObserveViewState(orderViewState: OrderViewState) {
+private fun ObserveViewState(
+    viewModel: FoodyViewModel = koinViewModel<FoodyViewModelImpl>(),
+) {
+    val orderViewState by viewModel.orderViewState.collectAsState()
     when (orderViewState) {
-        is OrderViewState.Loading -> CircularProgressIndicator()
-        is OrderViewState.Success -> HandleGetOrdersSuccess(orderViewState = orderViewState)
-        is OrderViewState.Error -> Text(text = orderViewState.message)
+        is OrderViewState.Loading -> HandleViewStateLoading()
+        is OrderViewState.Error -> HandleViewStateError(orderViewState as OrderViewState.Error)
+        is OrderViewState.KitchenClosed -> HandleViewStateKitchenClosed(orderViewState as OrderViewState.KitchenClosed)
+        is OrderViewState.GetOrdersSuccess -> HandleViewStateGetOrdersSuccess(orderViewState as OrderViewState.GetOrdersSuccess)
     }
 }
 
 @Composable
-private fun HandleGetOrdersSuccess(
-    orderViewState: OrderViewState.Success
+private fun HandleViewStateLoading() {
+    CircularProgressIndicator()
+}
+
+@Composable
+private fun HandleViewStateGetOrdersSuccess(
+    orderViewState: OrderViewState.GetOrdersSuccess
 ) {
     Column(
         modifier = Modifier.fillMaxSize(),
@@ -122,6 +122,16 @@ private fun HandleGetOrdersSuccess(
 }
 
 @Composable
+fun HandleViewStateKitchenClosed(kitchenClosed: OrderViewState.KitchenClosed) {
+    Text(text = stringResource(id = kitchenClosed.messageResId))
+}
+
+@Composable
+private fun HandleViewStateError(orderViewState: OrderViewState.Error) {
+    Text(text = orderViewState.message)
+}
+
+@Composable
 fun FoodyOrderList(orders: List<FoodyOrderDto>) {
     LazyColumn { // vertically scrolling list
         items(orders) { order -> //iterate through orders
@@ -133,9 +143,11 @@ fun FoodyOrderList(orders: List<FoodyOrderDto>) {
 }
 
 @Composable
-fun OrderCard(order: FoodyOrderDto) {
-    val foodyViewModel: FoodyViewModel = koinViewModel<FoodyViewModelImpl>()
-    val orderCardBackgroundColor = foodyViewModel.getOrderCardBackgroundColor(order)
+fun OrderCard(
+    viewModel: FoodyViewModel = koinViewModel<FoodyViewModelImpl>(),
+    order: FoodyOrderDto
+) {
+    val orderCardBackgroundColor = viewModel.getOrderCardBackgroundColor(order)
     Card(
         modifier = Modifier
             .fillMaxWidth()

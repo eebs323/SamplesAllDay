@@ -1,4 +1,5 @@
 <resources>
     <string name="app_name">SamplesAllDay</string>
+    <string name="kitchen_closed">Kitchen Closed</string>
 
 </resources>

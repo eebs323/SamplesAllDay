@@ -34,7 +34,7 @@ class MainActivity : AppCompatActivity(), LifecycleOwner {
 fun AppNavigation(lifecycle: Lifecycle) {
     val navController = rememberNavController()
     NavHost(navController = navController, startDestination = NAV_ROUTE_MAIN) {
-        composable(NAV_ROUTE_MAIN) { WelcomeScreen(navController) }
+        composable(NAV_ROUTE_MAIN) { WelcomeScreen(navController = navController) }
         composable(NAV_ROUTE_FOODY) { FoodyScreen(lifecycle = lifecycle) }
         composable(NAV_ROUTE_DICEY) { DiceRoller() }
     }
