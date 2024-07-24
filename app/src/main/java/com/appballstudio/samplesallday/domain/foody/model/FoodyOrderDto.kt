@@ -8,6 +8,14 @@ data class FoodyOrderDto(
     val shelf: String,
     val timestamp: Long,
     val destination: String,
+    val changelog: List<ChangelogEntry>
+)
+
+data class ChangelogEntry(
+    val timestamp: Long,
+    val changeType: String,
+    val oldValue: String,
+    val newValue: String
 )
 
 enum class Shelf {
@@ -22,7 +30,8 @@ val mockFoodyOrderDtos: List<FoodyOrderDto> = listOf(
         item = "item1",
         shelf = "HOT",
         timestamp = 10000,
-        destination = "destination1"
+        destination = "destination1",
+        changelog = listOf()
     ),
     FoodyOrderDto(
         id = "id2",
@@ -31,7 +40,8 @@ val mockFoodyOrderDtos: List<FoodyOrderDto> = listOf(
         item = "item2",
         shelf = "COLD",
         timestamp = 20000,
-        destination = "destination2"
+        destination = "destination2",
+        changelog = listOf()
     ),
     FoodyOrderDto(
         id = "id3",
@@ -40,7 +50,8 @@ val mockFoodyOrderDtos: List<FoodyOrderDto> = listOf(
         item = "item3",
         shelf = "FROZEN",
         timestamp = 30000,
-        destination = "destination3"
+        destination = "destination3",
+        changelog = listOf()
     ),
     FoodyOrderDto(
         id = "id4",
@@ -49,6 +60,7 @@ val mockFoodyOrderDtos: List<FoodyOrderDto> = listOf(
         item = "item4",
         shelf = "OVERFLOW",
         timestamp = 40000,
-        destination = "destination4"
+        destination = "destination4",
+        changelog = listOf()
     ),
 )

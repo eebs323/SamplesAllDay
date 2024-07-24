@@ -1,5 +1,6 @@
-package com.appballstudio.samplesallday.ui.foody
+package com.appballstudio.samplesallday.ui.foody.orders
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -19,6 +20,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -29,7 +31,9 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.repeatOnLifecycle
+import androidx.navigation.NavHostController
 import com.appballstudio.samplesallday.domain.foody.model.FoodyOrderDto
+import com.appballstudio.samplesallday.ui.foody.orderdetails.NAV_ROUTE_ORDER_DETAILS
 import kotlinx.coroutines.launch
 import org.koin.androidx.compose.koinViewModel
 
@@ -38,12 +42,19 @@ const val NAV_ROUTE_FOODY = "ROUTE_FOODY"
 @Composable
 fun FoodyScreen(
     viewModel: FoodyViewModel = koinViewModel<FoodyViewModelImpl>(),
-    lifecycle: Lifecycle
+    lifecycle: Lifecycle,
+    navController: NavHostController
 ) {
     LaunchedEffect(key1 = lifecycle) { // coroutine tied to the lifecycle of the composable
         viewModel.loadOrders(lifecycle)
     }
     FoodyContent(lifecycle = lifecycle)
+    ObserveViewEvent(navController = navController) // observe events
+    DisposableEffect(Unit) {
+        onDispose {
+            viewModel.dispose()
+        }
+    }
 }
 
 @Composable
@@ -88,12 +99,28 @@ private fun FoodyContent(
 private fun ObserveViewState(
     viewModel: FoodyViewModel = koinViewModel<FoodyViewModelImpl>(),
 ) {
-    val orderViewState by viewModel.orderViewState.collectAsState()
+    val orderViewState by viewModel.viewState.collectAsState()
     when (orderViewState) {
         is OrderViewState.Loading -> HandleViewStateLoading()
         is OrderViewState.Error -> HandleViewStateError(orderViewState as OrderViewState.Error)
         is OrderViewState.KitchenClosed -> HandleViewStateKitchenClosed(orderViewState as OrderViewState.KitchenClosed)
         is OrderViewState.GetOrdersSuccess -> HandleViewStateGetOrdersSuccess(orderViewState as OrderViewState.GetOrdersSuccess)
+    }
+}
+
+@Composable
+fun ObserveViewEvent(
+    viewModel: FoodyViewModel = koinViewModel<FoodyViewModelImpl>(),
+    navController: NavHostController,
+) {
+    LaunchedEffect(key1 = Unit) {
+        viewModel.eventFlow.collect { event ->
+            when (event) {
+                is Event.NavigateToOrderDetails -> {
+                    navController.navigate("$NAV_ROUTE_ORDER_DETAILS/${event.orderId}")
+                }
+            }
+        }
     }
 }
 
@@ -133,11 +160,13 @@ private fun HandleViewStateError(orderViewState: OrderViewState.Error) {
 
 @Composable
 fun FoodyOrderList(orders: List<FoodyOrderDto>) {
-    LazyColumn { // vertically scrolling list
-        items(orders) { order -> //iterate through orders
-            OrderCard(
-                order = order
-            )
+    LazyColumn( // vertically scrolling list
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(8.dp)
+    ) {
+        items(orders) { order -> // iterate through orders
+            OrderCard(order = order)
         }
     }
 }
@@ -147,13 +176,15 @@ fun OrderCard(
     viewModel: FoodyViewModel = koinViewModel<FoodyViewModelImpl>(),
     order: FoodyOrderDto
 ) {
-    val orderCardBackgroundColor = viewModel.getOrderCardBackgroundColor(order)
     Card(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(8.dp),
+            .padding(8.dp)
+            .clickable { viewModel.onOrderClick(order.id) },
         elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
-        colors = CardDefaults.cardColors(containerColor = orderCardBackgroundColor)
+        colors = CardDefaults.cardColors(
+            containerColor = viewModel.getOrderCardBackgroundColor(order)
+        )
     ) {
         Row(
             modifier = Modifier
