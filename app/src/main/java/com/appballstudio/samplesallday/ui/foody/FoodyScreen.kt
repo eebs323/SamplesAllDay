@@ -10,7 +10,6 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.pullrefresh.PullRefreshIndicator
-import androidx.compose.material.pullrefresh.PullRefreshState
 import androidx.compose.material.pullrefresh.pullRefresh
 import androidx.compose.material.pullrefresh.rememberPullRefreshState
 import androidx.compose.material3.Card
@@ -30,20 +29,40 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.repeatOnLifecycle
 import com.appballstudio.samplesallday.domain.foody.model.FoodyOrderDto
-import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import org.koin.androidx.compose.koinViewModel
 
 const val NAV_ROUTE_FOODY = "ROUTE_FOODY"
 
-@OptIn(ExperimentalMaterialApi::class)
 @Composable
 fun FoodyScreen(lifecycle: Lifecycle) {
     val viewModel: FoodyViewModel = koinViewModel<FoodyViewModelImpl>()
     val orderViewState by viewModel.orderViewState.collectAsState()
+    LoadOrders(viewModel, lifecycle)
+    FoodyContent(viewModel, lifecycle, orderViewState)
+}
 
+@Composable
+private fun LoadOrders(
+    viewModel: FoodyViewModel,
+    lifecycle: Lifecycle
+) {
+    LaunchedEffect(key1 = lifecycle) { // coroutine tied to the lifecycle of the composable
+        lifecycle.repeatOnLifecycle(Lifecycle.State.STARTED) { // ensure loadOrders invoked only when lifecycle hits STARTED
+            viewModel.loadOrders()
+        }
+    }
+}
+
+@Composable
+@OptIn(ExperimentalMaterialApi::class)
+private fun FoodyContent(
+    viewModel: FoodyViewModel = koinViewModel<FoodyViewModelImpl>(),
+    lifecycle: Lifecycle,
+    orderViewState: OrderViewState
+) {
     val coroutineScope = rememberCoroutineScope()
-    val pullRefreshState = rememberPullRefreshState(
+    val pullRefreshState = rememberPullRefreshState( // pull to refresh action
         refreshing = false,
         onRefresh = {
             coroutineScope.launch {
@@ -54,21 +73,6 @@ fun FoodyScreen(lifecycle: Lifecycle) {
         }
     )
 
-    LaunchedEffect(key1 = lifecycle) {
-        lifecycle.repeatOnLifecycle(Lifecycle.State.STARTED) {
-            viewModel.loadOrders()
-        }
-    }
-
-    FoodyContent(pullRefreshState, orderViewState)
-}
-
-@Composable
-@OptIn(ExperimentalMaterialApi::class)
-private fun FoodyContent(
-    pullRefreshState: PullRefreshState,
-    orderViewState: OrderViewState,
-) {
     Surface(
         modifier = Modifier.fillMaxSize(),
         color = MaterialTheme.colorScheme.background
@@ -76,11 +80,11 @@ private fun FoodyContent(
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .pullRefresh(pullRefreshState),  // allow pull to refresh screen
+                .pullRefresh(pullRefreshState),  // add scroll behavior for pull to refresh
             contentAlignment = Alignment.Center
         ) {
             ObserveViewState(orderViewState) // compose content based on view state
-            PullRefreshIndicator( // over compose content
+            PullRefreshIndicator(
                 refreshing = false, // only show indicator when refresh action occurs
                 state = pullRefreshState, // Pull to refresh action
                 modifier = Modifier.align(Alignment.TopCenter)
