@@ -1,10 +1,9 @@
 package com.appballstudio.samplesallday.ui.foody.orders
 
 import android.util.Log
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.runtime.Composable
+import androidx.annotation.VisibleForTesting
+import androidx.annotation.VisibleForTesting.Companion.PRIVATE
 import androidx.compose.ui.graphics.Color
-import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.appballstudio.samplesallday.R
@@ -17,7 +16,6 @@ import com.appballstudio.samplesallday.ui.foody.theme.LightGray
 import com.appballstudio.samplesallday.ui.foody.theme.LightGreen
 import com.appballstudio.samplesallday.ui.foody.theme.LightRed
 import com.appballstudio.samplesallday.ui.foody.theme.Orange
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
@@ -30,7 +28,7 @@ import kotlin.coroutines.cancellation.CancellationException
 interface FoodyViewModel {
     val viewState: StateFlow<OrdersViewState>
     val eventFlow: SharedFlow<Event>
-    suspend fun loadOrders(lifecycle: Lifecycle)
+    suspend fun updateOrders()
     fun onOrderClick(orderId: String)
     fun getOrderCardBackgroundColor(order: FoodyOrderDto): Color
     fun dispose()
@@ -46,24 +44,21 @@ class FoodyViewModelImpl(val foodyRepository: FoodyRepository) : ViewModel(), Fo
 
     private val _orders = mutableMapOf<String, FoodyOrderDto>() // Store orders by ID
 
-    override suspend fun loadOrders(lifecycle: Lifecycle) {
-        while (true) {
-            Log.i(TAG, "Checking for order updates")
-            try {
-                val newOrders = foodyRepository.getOrders()!!
-                if (newOrders.isEmpty()) {
-                    _viewState.value = OrdersViewState.KitchenClosed(R.string.kitchen_closed)
-                } else {
-                    updateOrders(newOrders)
-                }
-                Log.i(TAG, "Orders updated")
-            } catch (e: Exception) {
-                Log.e(TAG, "Error updating orders", e)
-                if (e !is CancellationException) {
-                    _viewState.value = OrdersViewState.Error(message = "Failed to update orders")
-                }
+    override suspend fun updateOrders() {
+        Log.i(TAG, "Checking for order updates")
+        try {
+            val newOrders = foodyRepository.getOrders()!!
+            if (newOrders.isEmpty()) {
+                _viewState.value = OrdersViewState.KitchenClosed(R.string.kitchen_closed)
+            } else {
+                updateOrders(newOrders)
             }
-            delay(2000) // Check every 2 seconds
+            Log.i(TAG, "Orders updated")
+        } catch (e: Exception) {
+            Log.e(TAG, "Error updating orders", e)
+            if (e !is CancellationException) {
+                _viewState.value = OrdersViewState.Error(message = "Failed to update orders")
+            }
         }
     }
 
@@ -92,14 +87,15 @@ class FoodyViewModelImpl(val foodyRepository: FoodyRepository) : ViewModel(), Fo
         }
     }
 
-    private fun updateOrders(newOrders: List<FoodyOrderDto>) {
+    @VisibleForTesting(otherwise = PRIVATE)
+    internal fun updateOrders(newOrders: List<FoodyOrderDto>) {
         for (newOrder in newOrders) {
             val existingOrder = _orders[newOrder.id]
             if (existingOrder == null || newOrder.timestamp > existingOrder.timestamp) {
                 _orders[newOrder.id] = newOrder // Add or update the order
             }
         }
-        _viewState.value = OrdersViewState.GetOrdersSuccess(_orders.values.toList())
+        _viewState.value = OrdersViewState.UpdateOrders(_orders.values.toList())
     }
 }
 
@@ -107,7 +103,7 @@ sealed class OrdersViewState {
     data object Loading : OrdersViewState()
     data class Error(val message: String) : OrdersViewState()
     data class KitchenClosed(val messageResId: Int) : OrdersViewState()
-    data class GetOrdersSuccess(val orders: List<FoodyOrderDto>) : OrdersViewState()
+    data class UpdateOrders(val orders: List<FoodyOrderDto>) : OrdersViewState()
 }
 
 sealed class Event {

@@ -49,14 +49,16 @@ android {
             excludes += "/META-INF/{AL2.0,LGPL2.1}"
         }
     }
+    android.testOptions {
+        unitTests.all {
+            it.useJUnitPlatform()
+        }
+    }
 }
 
 dependencies {
     // Libraries
     implementation(project(":presentation:dicebomb"))
-//    implementation(project(":presentation:foody"))
-//    implementation(project(":domain"))
-//    implementation(project(":data"))
 
     // Android
     implementation(libs.androidx.activity.ktx)
@@ -85,8 +87,13 @@ dependencies {
     implementation(libs.retrofit2.coroutines.adapter)
 
     // Testing
-    testImplementation(libs.junit)
-    testImplementation(libs.mockk)
+//    testImplementation(libs.kotlin.reflect)
+    testImplementation(libs.kotest)
+//    testImplementation(libs.kotestAssertions)
+//    testImplementation(libs.mockk)
+    testImplementation(libs.mockkAndroid)
+    testImplementation(libs.mockkAgent)
     testImplementation(libs.coroutinesTest)
+//    testImplementation(libs.junit.jupiter)
 
 }

@@ -32,6 +32,7 @@ import com.appballstudio.samplesallday.domain.foody.model.FoodyOrderDto
 import com.appballstudio.samplesallday.ui.foody.orderdetails.NAV_ROUTE_ORDER_DETAILS
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import org.koin.androidx.compose.koinViewModel
 
@@ -45,9 +46,9 @@ fun FoodyScreen(
     navController: NavHostController
 ) {
     val coroutineScope = rememberCoroutineScope()
-    LoadOrders(coroutineScope = coroutineScope, lifecycle = lifecycle)
-    OrdersContent()
-    ObserveViewEvent(navController = navController) // observe events
+    UpdateOrders(coroutineScope = coroutineScope, lifecycle = lifecycle)
+    ObserveViewState()
+    ObserveViewEvent(navController = navController)
     DisposableEffect(Unit) {
         onDispose {
             viewModel.dispose()
@@ -56,7 +57,7 @@ fun FoodyScreen(
 }
 
 @Composable
-fun LoadOrders(
+fun UpdateOrders(
     viewModel: FoodyViewModel = koinViewModel<FoodyViewModelImpl>(),
     coroutineScope: CoroutineScope,
     lifecycle: Lifecycle
@@ -64,14 +65,17 @@ fun LoadOrders(
     LaunchedEffect(key1 = lifecycle) {
         ordersJob = coroutineScope.launch {
             lifecycle.repeatOnLifecycle(Lifecycle.State.STARTED) {
-                viewModel.loadOrders(lifecycle)
+                while (true) {
+                    viewModel.updateOrders()
+                    delay(2000) // Check every 2 seconds
+                }
             }
         }
     }
 }
 
 @Composable
-fun OrdersContent() {
+fun ObserveViewState() {
     Surface(
         modifier = Modifier.fillMaxSize(),
         color = MaterialTheme.colorScheme.background
@@ -80,21 +84,14 @@ fun OrdersContent() {
             modifier = Modifier.fillMaxSize(),
             contentAlignment = Alignment.Center
         ) {
-            ObserveViewState() // compose content based on view state
+            val orderViewState by koinViewModel<FoodyViewModelImpl>().viewState.collectAsState()
+            when (orderViewState) {
+                is OrdersViewState.Loading -> HandleViewStateLoading()
+                is OrdersViewState.Error -> HandleViewStateError(orderViewState as OrdersViewState.Error)
+                is OrdersViewState.KitchenClosed -> HandleViewStateKitchenClosed(orderViewState as OrdersViewState.KitchenClosed)
+                is OrdersViewState.UpdateOrders -> HandleViewStateGetOrdersSuccess(orderViewState as OrdersViewState.UpdateOrders)
+            }
         }
-    }
-}
-
-@Composable
-private fun ObserveViewState(
-    viewModel: FoodyViewModel = koinViewModel<FoodyViewModelImpl>(),
-) {
-    val orderViewState by viewModel.viewState.collectAsState()
-    when (orderViewState) {
-        is OrdersViewState.Loading -> HandleViewStateLoading()
-        is OrdersViewState.Error -> HandleViewStateError(orderViewState as OrdersViewState.Error)
-        is OrdersViewState.KitchenClosed -> HandleViewStateKitchenClosed(orderViewState as OrdersViewState.KitchenClosed)
-        is OrdersViewState.GetOrdersSuccess -> HandleViewStateGetOrdersSuccess(orderViewState as OrdersViewState.GetOrdersSuccess)
     }
 }
 
@@ -120,25 +117,25 @@ fun HandleViewStateLoading() {
 
 @Composable
 fun HandleViewStateGetOrdersSuccess(
-    ordersViewState: OrdersViewState.GetOrdersSuccess
+    ordersViewState: OrdersViewState.UpdateOrders
 ) {
     Column(
         modifier = Modifier.fillMaxSize(),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Text( // ORDERS text
+        Text( // ORDERS title
             text = "ORDERS",
             style = MaterialTheme.typography.headlineMedium,
             modifier = Modifier.padding(16.dp)
         )
-        FoodyOrderList( // Show orders
+        OrdersList( // Show orders
             orders = ordersViewState.orders
         )
     }
 }
 
 @Composable
-fun FoodyOrderList(orders: List<FoodyOrderDto>) {
+fun OrdersList(orders: List<FoodyOrderDto>) {
     LazyColumn( // vertically scrolling list
         modifier = Modifier
             .fillMaxWidth()
