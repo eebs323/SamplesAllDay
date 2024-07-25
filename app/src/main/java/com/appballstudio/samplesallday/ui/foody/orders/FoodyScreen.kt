@@ -183,8 +183,8 @@ fun HandleViewStateKitchenClosed(kitchenClosed: OrdersViewState.KitchenClosed) {
 }
 
 @Composable
-private fun HandleViewStateError(ordersViewState: OrdersViewState.Error) {
-    Text(text = ordersViewState.message)
+private fun HandleViewStateError(errorViewState: OrdersViewState.Error) {
+    Text(text = stringResource(id = errorViewState.messageResId))
 }
 
 private fun handleNavigateToOrderDetails(navController: NavHostController, event: Event.NavigateToOrderDetails) {

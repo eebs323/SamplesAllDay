@@ -1,5 +1,5 @@
 <resources>
     <string name="app_name">SamplesAllDay</string>
     <string name="kitchen_closed">Kitchen Closed</string>
-
+    <string name="update_orders_failed">Failed to update orders</string>
 </resources>

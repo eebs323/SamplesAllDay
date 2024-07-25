@@ -57,7 +57,7 @@ class FoodyViewModelImpl(val foodyRepository: FoodyRepository) : ViewModel(), Fo
         } catch (e: Exception) {
             Log.e(TAG, "Error updating orders", e)
             if (e !is CancellationException) {
-                _viewState.value = OrdersViewState.Error(message = "Failed to update orders")
+                _viewState.value = OrdersViewState.Error(R.string.update_orders_failed)
             }
         }
     }
@@ -101,7 +101,7 @@ class FoodyViewModelImpl(val foodyRepository: FoodyRepository) : ViewModel(), Fo
 
 sealed class OrdersViewState {
     data object Loading : OrdersViewState()
-    data class Error(val message: String) : OrdersViewState()
+    data class Error(val messageResId: Int) : OrdersViewState()
     data class KitchenClosed(val messageResId: Int) : OrdersViewState()
     data class UpdateOrders(val orders: List<FoodyOrderDto>) : OrdersViewState()
 }
