@@ -9,10 +9,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.material.ExperimentalMaterialApi
-import androidx.compose.material.pullrefresh.PullRefreshIndicator
-import androidx.compose.material.pullrefresh.pullRefresh
-import androidx.compose.material.pullrefresh.rememberPullRefreshState
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
@@ -34,10 +30,13 @@ import androidx.lifecycle.repeatOnLifecycle
 import androidx.navigation.NavHostController
 import com.appballstudio.samplesallday.domain.foody.model.FoodyOrderDto
 import com.appballstudio.samplesallday.ui.foody.orderdetails.NAV_ROUTE_ORDER_DETAILS
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import org.koin.androidx.compose.koinViewModel
 
 const val NAV_ROUTE_FOODY = "ROUTE_FOODY"
+var ordersJob: Job? = null
 
 @Composable
 fun FoodyScreen(
@@ -45,10 +44,9 @@ fun FoodyScreen(
     lifecycle: Lifecycle,
     navController: NavHostController
 ) {
-    LaunchedEffect(key1 = lifecycle) { // coroutine tied to the lifecycle of the composable
-        viewModel.loadOrders(lifecycle)
-    }
-    FoodyContent(lifecycle = lifecycle)
+    val coroutineScope = rememberCoroutineScope()
+    LoadOrders(coroutineScope = coroutineScope, lifecycle = lifecycle)
+    OrdersContent()
     ObserveViewEvent(navController = navController) // observe events
     DisposableEffect(Unit) {
         onDispose {
@@ -58,39 +56,31 @@ fun FoodyScreen(
 }
 
 @Composable
-@OptIn(ExperimentalMaterialApi::class)
-private fun FoodyContent(
+fun LoadOrders(
     viewModel: FoodyViewModel = koinViewModel<FoodyViewModelImpl>(),
+    coroutineScope: CoroutineScope,
     lifecycle: Lifecycle
 ) {
-    val coroutineScope = rememberCoroutineScope()
-    val pullRefreshState = rememberPullRefreshState(
-        refreshing = false,
-        onRefresh = {
-            coroutineScope.launch {
-                lifecycle.repeatOnLifecycle(Lifecycle.State.STARTED) {
-                    viewModel.onRefresh(lifecycle)
-                }
+    LaunchedEffect(key1 = lifecycle) {
+        ordersJob = coroutineScope.launch {
+            lifecycle.repeatOnLifecycle(Lifecycle.State.STARTED) {
+                viewModel.loadOrders(lifecycle)
             }
         }
-    )
+    }
+}
 
+@Composable
+fun OrdersContent() {
     Surface(
         modifier = Modifier.fillMaxSize(),
         color = MaterialTheme.colorScheme.background
     ) {
         Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .pullRefresh(pullRefreshState),  // add scroll behavior for pull to refresh
+            modifier = Modifier.fillMaxSize(),
             contentAlignment = Alignment.Center
         ) {
             ObserveViewState() // compose content based on view state
-            PullRefreshIndicator(
-                refreshing = false, // only show indicator when refresh action occurs
-                state = pullRefreshState, // Pull to refresh action
-                modifier = Modifier.align(Alignment.TopCenter)
-            )
         }
     }
 }
@@ -101,10 +91,10 @@ private fun ObserveViewState(
 ) {
     val orderViewState by viewModel.viewState.collectAsState()
     when (orderViewState) {
-        is OrderViewState.Loading -> HandleViewStateLoading()
-        is OrderViewState.Error -> HandleViewStateError(orderViewState as OrderViewState.Error)
-        is OrderViewState.KitchenClosed -> HandleViewStateKitchenClosed(orderViewState as OrderViewState.KitchenClosed)
-        is OrderViewState.GetOrdersSuccess -> HandleViewStateGetOrdersSuccess(orderViewState as OrderViewState.GetOrdersSuccess)
+        is OrdersViewState.Loading -> HandleViewStateLoading()
+        is OrdersViewState.Error -> HandleViewStateError(orderViewState as OrdersViewState.Error)
+        is OrdersViewState.KitchenClosed -> HandleViewStateKitchenClosed(orderViewState as OrdersViewState.KitchenClosed)
+        is OrdersViewState.GetOrdersSuccess -> HandleViewStateGetOrdersSuccess(orderViewState as OrdersViewState.GetOrdersSuccess)
     }
 }
 
@@ -116,22 +106,21 @@ fun ObserveViewEvent(
     LaunchedEffect(key1 = Unit) {
         viewModel.eventFlow.collect { event ->
             when (event) {
-                is Event.NavigateToOrderDetails -> {
-                    navController.navigate("$NAV_ROUTE_ORDER_DETAILS/${event.orderId}")
-                }
+                is Event.NavigateToOrderDetails -> handleNavigateToOrderDetails(navController, event)
+                is Event.Dispose -> handleDispose()
             }
         }
     }
 }
 
 @Composable
-private fun HandleViewStateLoading() {
+fun HandleViewStateLoading() {
     CircularProgressIndicator()
 }
 
 @Composable
-private fun HandleViewStateGetOrdersSuccess(
-    orderViewState: OrderViewState.GetOrdersSuccess
+fun HandleViewStateGetOrdersSuccess(
+    ordersViewState: OrdersViewState.GetOrdersSuccess
 ) {
     Column(
         modifier = Modifier.fillMaxSize(),
@@ -143,19 +132,9 @@ private fun HandleViewStateGetOrdersSuccess(
             modifier = Modifier.padding(16.dp)
         )
         FoodyOrderList( // Show orders
-            orders = orderViewState.orders
+            orders = ordersViewState.orders
         )
     }
-}
-
-@Composable
-fun HandleViewStateKitchenClosed(kitchenClosed: OrderViewState.KitchenClosed) {
-    Text(text = stringResource(id = kitchenClosed.messageResId))
-}
-
-@Composable
-private fun HandleViewStateError(orderViewState: OrderViewState.Error) {
-    Text(text = orderViewState.message)
 }
 
 @Composable
@@ -199,4 +178,23 @@ fun OrderCard(
             Text(text = "Shelf: ${order.shelf}") // Shelf name
         }
     }
+}
+
+@Composable
+fun HandleViewStateKitchenClosed(kitchenClosed: OrdersViewState.KitchenClosed) {
+    Text(text = stringResource(id = kitchenClosed.messageResId))
+}
+
+@Composable
+private fun HandleViewStateError(ordersViewState: OrdersViewState.Error) {
+    Text(text = ordersViewState.message)
+}
+
+private fun handleNavigateToOrderDetails(navController: NavHostController, event: Event.NavigateToOrderDetails) {
+    navController.navigate("$NAV_ROUTE_ORDER_DETAILS/${event.orderId}")
+}
+
+private fun handleDispose() {
+    ordersJob?.cancel()
+    ordersJob = null
 }
