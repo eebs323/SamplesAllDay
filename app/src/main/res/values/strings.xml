@@ -2,4 +2,9 @@
     <string name="app_name">SamplesAllDay</string>
     <string name="kitchen_closed">Kitchen Closed</string>
     <string name="update_orders_failed">Failed to update orders</string>
+    <string name="trashed">Trashed</string>
+    <string name="delivered">Delivered</string>
+    <string name="sales">Sales</string>
+    <string name="waste">Waste</string>
+    <string name="revenue">Revenue</string>
 </resources>

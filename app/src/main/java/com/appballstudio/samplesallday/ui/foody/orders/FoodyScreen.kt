@@ -1,6 +1,7 @@
 package com.appballstudio.samplesallday.ui.foody.orders
 
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -10,6 +11,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -31,7 +33,9 @@ import androidx.core.os.bundleOf
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.repeatOnLifecycle
 import androidx.navigation.NavHostController
+import com.appballstudio.samplesallday.R
 import com.appballstudio.samplesallday.domain.foody.model.FoodyOrderDto
+import com.appballstudio.samplesallday.ui.common.MetricCard
 import com.appballstudio.samplesallday.ui.foody.orderdetails.NAV_ROUTE_ORDER_DETAILS
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
@@ -133,11 +137,29 @@ fun HandleViewStateUpdateOrders(
     ordersViewState: OrdersViewState.UpdateOrders
 ) {
     Column(modifier = Modifier.padding(16.dp)) {
-        Text("Orders Trashed: ${viewModel.numOrdersTrashed}")
-        Text("Orders Delivered: ${viewModel.numOrdersDelivered}")
-        Text("Total Sales: $${viewModel.totalSales}")
-        Text("Total Waste: $${viewModel.totalWaste}")
-        Text("Total Revenue: $${viewModel.totalRevenue}")
+        LazyRow(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp),
+            horizontalArrangement = Arrangement.SpaceAround
+        ) {
+            item {
+                MetricCard(title = stringResource(id = R.string.trashed), value = viewModel.numOrdersTrashed.toString())
+            }
+            item {
+                MetricCard(title = stringResource(id = R.string.delivered), value = viewModel.numOrdersDelivered.toString())
+            }
+            item {
+                MetricCard(title = stringResource(id = R.string.sales), value = "$${viewModel.totalSales}")
+            }
+            item {
+                MetricCard(title = stringResource(id = R.string.waste), value = "$${viewModel.totalWaste}")
+            }
+            item {
+                MetricCard(title = stringResource(id = R.string.revenue), value = "$${viewModel.totalRevenue}")
+            }
+        }
+
         Spacer(modifier = Modifier.height(16.dp))
         OrdersList( // Show orders
             orders = ordersViewState.orders
