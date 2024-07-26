@@ -178,7 +178,12 @@ class FoodyViewModelImpl(val foodyRepository: FoodyRepository) : ViewModel(), Fo
                 shelf = (newShelf ?: Shelf.valueOf(order.shelf)).name,
                 changelog = (order.changelog ?: emptyList()) + changelogEntries
             )
-            _orders[order.id] = updatedOrder // Update the order in the map
+
+            if (newState in listOf("TRASHED", "DELIVERED", "CANCELLED")) {
+                _orders.remove(order.id) // Remove terminal state orders
+            } else {
+                _orders[order.id] = updatedOrder // Update non-terminal state orders
+            }
         }
     }
 }

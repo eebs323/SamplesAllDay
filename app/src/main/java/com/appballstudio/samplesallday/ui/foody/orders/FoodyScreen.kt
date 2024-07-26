@@ -5,10 +5,8 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
@@ -89,8 +87,10 @@ fun ObserveViewState() {
         color = MaterialTheme.colorScheme.background
     ) {
         Box(
-            modifier = Modifier.fillMaxSize(),
-            contentAlignment = Alignment.Center
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(16.dp),
+            contentAlignment = Alignment.Center,
         ) {
             val orderViewState by koinViewModel<FoodyViewModelImpl>().viewState.collectAsState()
             when (orderViewState) {
@@ -136,7 +136,7 @@ fun HandleViewStateUpdateOrders(
     viewModel: FoodyViewModel = koinViewModel<FoodyViewModelImpl>(),
     ordersViewState: OrdersViewState.UpdateOrders
 ) {
-    Column(modifier = Modifier.padding(16.dp)) {
+    Column {
         OrderStatistics(viewModel)
         OrdersList( // Show orders
             orders = ordersViewState.orders
@@ -147,9 +147,7 @@ fun HandleViewStateUpdateOrders(
 @Composable
 private fun OrderStatistics(viewModel: FoodyViewModel) {
     LazyRow(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(16.dp),
+        modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.SpaceAround
     ) {
         item {
@@ -173,9 +171,7 @@ private fun OrderStatistics(viewModel: FoodyViewModel) {
 @Composable
 fun OrdersList(orders: List<FoodyOrderDto>) {
     LazyColumn( // vertically scrolling list
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(8.dp)
+        modifier = Modifier.fillMaxWidth()
     ) {
         items(orders) { order -> // iterate through orders
             OrderCard(order = order)
