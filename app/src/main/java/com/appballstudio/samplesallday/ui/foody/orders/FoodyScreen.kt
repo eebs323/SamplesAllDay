@@ -25,6 +25,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import androidx.core.os.bundleOf
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.repeatOnLifecycle
 import androidx.navigation.NavHostController
@@ -37,6 +38,7 @@ import kotlinx.coroutines.launch
 import org.koin.androidx.compose.koinViewModel
 
 const val NAV_ROUTE_FOODY = "ROUTE_FOODY"
+const val ARG_ORDER = "ARG_ORDER"
 var ordersJob: Job? = null
 
 @Composable
@@ -156,7 +158,7 @@ fun OrderCard(
         modifier = Modifier
             .fillMaxWidth()
             .padding(8.dp)
-            .clickable { viewModel.onOrderClick(order.id) },
+            .clickable { viewModel.onOrderClick(order) },
         elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
         colors = CardDefaults.cardColors(
             containerColor = viewModel.getOrderCardBackgroundColor(order)
@@ -188,7 +190,10 @@ private fun HandleViewStateError(errorViewState: OrdersViewState.Error) {
 }
 
 private fun handleNavigateToOrderDetails(navController: NavHostController, event: Event.NavigateToOrderDetails) {
-    navController.navigate("$NAV_ROUTE_ORDER_DETAILS/${event.orderId}")
+    val order = event.order
+    navController.navigate(route = NAV_ROUTE_ORDER_DETAILS) {
+        bundleOf(ARG_ORDER to order)
+    }
 }
 
 private fun handleDispose() {

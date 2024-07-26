@@ -29,7 +29,8 @@ interface FoodyViewModel {
     val viewState: StateFlow<OrdersViewState>
     val eventFlow: SharedFlow<Event>
     suspend fun updateOrders()
-    fun onOrderClick(orderId: String)
+    fun onOrderClick(order: FoodyOrderDto)
+    fun getOrderById(orderId: String): FoodyOrderDto?
     fun getOrderCardBackgroundColor(order: FoodyOrderDto): Color
     fun dispose()
 }
@@ -62,11 +63,15 @@ class FoodyViewModelImpl(val foodyRepository: FoodyRepository) : ViewModel(), Fo
         }
     }
 
-    override fun onOrderClick(orderId: String) {
-        Log.i(TAG, "Order clicked: $orderId")
+    override fun onOrderClick(order: FoodyOrderDto) {
+        Log.i(TAG, "Order clicked: ${order.item}")
         viewModelScope.launch {
-            _eventFlow.emit(Event.NavigateToOrderDetails(orderId))
+            _eventFlow.emit(Event.NavigateToOrderDetails(order))
         }
+    }
+
+    override fun getOrderById(orderId: String): FoodyOrderDto? {
+        return _orders[orderId]
     }
 
     override fun getOrderCardBackgroundColor(order: FoodyOrderDto): Color {
@@ -107,6 +112,6 @@ sealed class OrdersViewState {
 }
 
 sealed class Event {
-    data class NavigateToOrderDetails(val orderId: String) : Event()
+    data class NavigateToOrderDetails(val order: FoodyOrderDto) : Event()
     data object Dispose : Event()
 }
