@@ -182,6 +182,7 @@ fun OrderCard(
 @Composable
 fun HandleViewStateKitchenClosed(kitchenClosed: OrdersViewState.KitchenClosed) {
     Text(text = stringResource(id = kitchenClosed.messageResId))
+    handleDispose()
 }
 
 @Composable
