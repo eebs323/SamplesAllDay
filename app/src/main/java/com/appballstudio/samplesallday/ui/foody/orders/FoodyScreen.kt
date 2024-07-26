@@ -137,33 +137,36 @@ fun HandleViewStateUpdateOrders(
     ordersViewState: OrdersViewState.UpdateOrders
 ) {
     Column(modifier = Modifier.padding(16.dp)) {
-        LazyRow(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(16.dp),
-            horizontalArrangement = Arrangement.SpaceAround
-        ) {
-            item {
-                MetricCard(title = stringResource(id = R.string.trashed), value = viewModel.numOrdersTrashed.toString())
-            }
-            item {
-                MetricCard(title = stringResource(id = R.string.delivered), value = viewModel.numOrdersDelivered.toString())
-            }
-            item {
-                MetricCard(title = stringResource(id = R.string.sales), value = "$${viewModel.totalSales}")
-            }
-            item {
-                MetricCard(title = stringResource(id = R.string.waste), value = "$${viewModel.totalWaste}")
-            }
-            item {
-                MetricCard(title = stringResource(id = R.string.revenue), value = "$${viewModel.totalRevenue}")
-            }
-        }
-
-        Spacer(modifier = Modifier.height(16.dp))
+        OrderStatistics(viewModel)
         OrdersList( // Show orders
             orders = ordersViewState.orders
         )
+    }
+}
+
+@Composable
+private fun OrderStatistics(viewModel: FoodyViewModel) {
+    LazyRow(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(16.dp),
+        horizontalArrangement = Arrangement.SpaceAround
+    ) {
+        item {
+            MetricCard(title = stringResource(id = R.string.trashed), value = viewModel.numOrdersTrashed.toString())
+        }
+        item {
+            MetricCard(title = stringResource(id = R.string.delivered), value = viewModel.numOrdersDelivered.toString())
+        }
+        item {
+            MetricCard(title = stringResource(id = R.string.sales), value = "$${viewModel.totalSales}")
+        }
+        item {
+            MetricCard(title = stringResource(id = R.string.waste), value = "$${viewModel.totalWaste}")
+        }
+        item {
+            MetricCard(title = stringResource(id = R.string.revenue), value = "$${viewModel.totalRevenue}")
+        }
     }
 }
 
