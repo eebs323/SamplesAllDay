@@ -4,8 +4,10 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -89,9 +91,17 @@ fun ObserveViewState() {
             val orderViewState by koinViewModel<FoodyViewModelImpl>().viewState.collectAsState()
             when (orderViewState) {
                 is OrdersViewState.Loading -> HandleViewStateLoading()
-                is OrdersViewState.Error -> HandleViewStateError(orderViewState as OrdersViewState.Error)
-                is OrdersViewState.KitchenClosed -> HandleViewStateKitchenClosed(orderViewState as OrdersViewState.KitchenClosed)
-                is OrdersViewState.UpdateOrders -> HandleViewStateGetOrdersSuccess(orderViewState as OrdersViewState.UpdateOrders)
+                is OrdersViewState.Error -> HandleViewStateError(
+                    errorViewState = orderViewState as OrdersViewState.Error
+                )
+
+                is OrdersViewState.KitchenClosed -> HandleViewStateKitchenClosed(
+                    kitchenClosed = orderViewState as OrdersViewState.KitchenClosed
+                )
+
+                is OrdersViewState.UpdateOrders -> HandleViewStateUpdateOrders(
+                    ordersViewState = orderViewState as OrdersViewState.UpdateOrders
+                )
             }
         }
     }
@@ -118,18 +128,17 @@ fun HandleViewStateLoading() {
 }
 
 @Composable
-fun HandleViewStateGetOrdersSuccess(
+fun HandleViewStateUpdateOrders(
+    viewModel: FoodyViewModel = koinViewModel<FoodyViewModelImpl>(),
     ordersViewState: OrdersViewState.UpdateOrders
 ) {
-    Column(
-        modifier = Modifier.fillMaxSize(),
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-        Text( // ORDERS title
-            text = "ORDERS",
-            style = MaterialTheme.typography.headlineMedium,
-            modifier = Modifier.padding(16.dp)
-        )
+    Column(modifier = Modifier.padding(16.dp)) {
+        Text("Orders Trashed: ${viewModel.numOrdersTrashed}")
+        Text("Orders Delivered: ${viewModel.numOrdersDelivered}")
+        Text("Total Sales: $${viewModel.totalSales}")
+        Text("Total Waste: $${viewModel.totalWaste}")
+        Text("Total Revenue: $${viewModel.totalRevenue}")
+        Spacer(modifier = Modifier.height(16.dp))
         OrdersList( // Show orders
             orders = ordersViewState.orders
         )

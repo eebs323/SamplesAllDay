@@ -24,11 +24,19 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import java.text.NumberFormat
+import java.util.Locale
 import kotlin.coroutines.cancellation.CancellationException
 
 interface FoodyViewModel {
     val viewState: StateFlow<OrdersViewState>
     val eventFlow: SharedFlow<Event>
+    val numOrdersTrashed: Int
+    val numOrdersDelivered: Int
+    val totalSales: String
+    val totalWaste: String
+    val totalRevenue: String
+
     suspend fun updateOrders()
     fun onOrderClick(order: FoodyOrderDto)
     fun getOrderById(orderId: String): FoodyOrderDto?
@@ -45,6 +53,20 @@ class FoodyViewModelImpl(val foodyRepository: FoodyRepository) : ViewModel(), Fo
     override val eventFlow = _eventFlow.asSharedFlow()
 
     private val _orders = mutableMapOf<String, FoodyOrderDto>() // Store orders by ID
+
+    private var _numOrdersTrashed = 0
+    override val numOrdersTrashed: Int get() = _numOrdersTrashed
+
+    private var _numOrdersDelivered = 0
+    override val numOrdersDelivered: Int get() = _numOrdersDelivered
+
+    private var _totalSales = 0.0
+    override val totalSales: String get() = NumberFormat.getNumberInstance(Locale.US).format(_totalSales)
+
+    private var _totalWaste = 0.0
+    override val totalWaste: String get() = NumberFormat.getNumberInstance(Locale.US).format(_totalWaste)
+
+    override val totalRevenue: String get() = NumberFormat.getNumberInstance(Locale.US).format(_totalSales - _totalWaste)
 
     override suspend fun updateOrders() {
         Log.i(TAG, "Checking for order updates")
@@ -141,6 +163,16 @@ class FoodyViewModelImpl(val foodyRepository: FoodyRepository) : ViewModel(), Fo
         }
 
         if (changelogEntries.isNotEmpty()) {
+            if (newState == "TRASHED") {
+                _numOrdersTrashed++
+                _totalWaste += order.price
+            }
+
+            if (newState == "DELIVERED") {
+                _numOrdersDelivered++
+                _totalSales += order.price
+            }
+
             val updatedOrder = order.copy(
                 state = newState ?: order.state,
                 shelf = (newShelf ?: Shelf.valueOf(order.shelf)).name,
