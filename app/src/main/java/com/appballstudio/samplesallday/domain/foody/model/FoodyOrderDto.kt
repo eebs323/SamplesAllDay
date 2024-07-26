@@ -12,7 +12,7 @@ data class FoodyOrderDto(
     val shelf: String,
     val timestamp: Long,
     val destination: String,
-    val changelog: List<ChangelogEntry>
+    val changelog: List<ChangelogEntry> = emptyList()
 ) : Parcelable
 
 @Parcelize

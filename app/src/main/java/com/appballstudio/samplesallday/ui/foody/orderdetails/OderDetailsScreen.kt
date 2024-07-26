@@ -43,9 +43,9 @@ fun OrderDetailsScreen(
                 }"
             )
             Text(text = "Destination: ${order.destination}")
-            Spacer(modifier = Modifier.height(16.dp))
-            Text(text = "Changelog", style = MaterialTheme.typography.displayMedium)
+            Text(text = "Changelog")
             HorizontalDivider()
+            Spacer(modifier = Modifier.height(16.dp))
             if (order.changelog.isEmpty()) {
                 Text(text = "No changelog entries available")
             } else {

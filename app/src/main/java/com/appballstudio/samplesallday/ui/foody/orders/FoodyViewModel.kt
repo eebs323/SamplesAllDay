@@ -7,6 +7,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.appballstudio.samplesallday.R
+import com.appballstudio.samplesallday.domain.foody.model.ChangelogEntry
 import com.appballstudio.samplesallday.domain.foody.model.FoodyOrderDto
 import com.appballstudio.samplesallday.domain.foody.model.Shelf
 import com.appballstudio.samplesallday.domain.foody.repository.FoodyRepository
@@ -96,11 +97,57 @@ class FoodyViewModelImpl(val foodyRepository: FoodyRepository) : ViewModel(), Fo
     internal fun updateOrders(newOrders: List<FoodyOrderDto>) {
         for (newOrder in newOrders) {
             val existingOrder = _orders[newOrder.id]
-            if (existingOrder == null || newOrder.timestamp > existingOrder.timestamp) {
+
+            if (existingOrder == null) {
                 _orders[newOrder.id] = newOrder // Add or update the order
+            } else if (newOrder.timestamp > existingOrder.timestamp) {
+                updateOrderAndCreateChangelog(
+                    order = existingOrder,
+                    newState = newOrder.state,
+                    newShelf = Shelf.valueOf(newOrder.shelf)
+                )
             }
         }
         _viewState.value = OrdersViewState.UpdateOrders(_orders.values.toList())
+    }
+
+    private fun updateOrderAndCreateChangelog(
+        order: FoodyOrderDto,
+        newState: String? = null,
+        newShelf: Shelf? = null
+    ) {
+        val changelogEntries = mutableListOf<ChangelogEntry>()
+
+        if (newState != null && newState != order.state) {
+            changelogEntries.add(
+                ChangelogEntry(
+                    timestamp = System.currentTimeMillis(),
+                    changeType = "State Change",
+                    oldValue = order.state,
+                    newValue = newState
+                )
+            )
+        }
+
+        if (newShelf != null && newShelf != Shelf.valueOf(order.shelf)) {
+            changelogEntries.add(
+                ChangelogEntry(
+                    timestamp = System.currentTimeMillis(),
+                    changeType = "Shelf Change",
+                    oldValue = order.shelf,
+                    newValue = newShelf.name
+                )
+            )
+        }
+
+        if (changelogEntries.isNotEmpty()) {
+            val updatedOrder = order.copy(
+                state = newState ?: order.state,
+                shelf = (newShelf ?: Shelf.valueOf(order.shelf)).name,
+                changelog = (order.changelog ?: emptyList()) + changelogEntries
+            )
+            _orders[order.id] = updatedOrder // Update the order in the map
+        }
     }
 }
 
