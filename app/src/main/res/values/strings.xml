@@ -7,4 +7,5 @@
     <string name="sales">Sales</string>
     <string name="waste">Waste</string>
     <string name="revenue">Revenue</string>
+    <string name="order_not_found">Order not found</string>
 </resources>

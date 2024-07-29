@@ -1,6 +1,7 @@
 package com.appballstudio.samplesallday.ui.foody.di
 
 import com.appballstudio.samplesallday.data.foody.repository.FoodyRepositoryImpl
+import com.appballstudio.samplesallday.ui.foody.orderdetails.OrderDetailsViewModelImpl
 import com.appballstudio.samplesallday.ui.foody.orders.FoodyViewModelImpl
 import com.appballstudio.samplesallday.ui.welcome.WelcomeViewModelImpl
 import org.koin.androidx.viewmodel.dsl.viewModel
@@ -12,5 +13,8 @@ val foodyUiModule = module {
     }
     viewModel {
         FoodyViewModelImpl(foodyRepository = get<FoodyRepositoryImpl>())
+    }
+    viewModel {
+        OrderDetailsViewModelImpl(foodyRepository = get<FoodyRepositoryImpl>())
     }
 }

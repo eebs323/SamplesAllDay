@@ -6,13 +6,16 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.runtime.Composable
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleOwner
+import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import androidx.navigation.navArgument
 import com.appballstudio.dicebomb.ui.DiceRoller
 import com.appballstudio.dicebomb.ui.NAV_ROUTE_DICEY
 import com.appballstudio.samplesallday.domain.foody.model.FoodyOrderDto
 import com.appballstudio.samplesallday.extensions.parcelable
+import com.appballstudio.samplesallday.ui.foody.orderdetails.NAV_ARG_ORDER_ID
 import com.appballstudio.samplesallday.ui.foody.orderdetails.NAV_ROUTE_ORDER_DETAILS
 import com.appballstudio.samplesallday.ui.foody.orderdetails.OrderDetailsScreen
 import com.appballstudio.samplesallday.ui.foody.orders.ARG_ORDER
@@ -54,20 +57,11 @@ fun AppNavigation(lifecycle: Lifecycle) {
 
         // Order Details
         composable(
-            route = NAV_ROUTE_ORDER_DETAILS
+            route = "$NAV_ROUTE_ORDER_DETAILS/{$NAV_ARG_ORDER_ID}",
+            arguments = listOf(navArgument(NAV_ARG_ORDER_ID) { type = NavType.StringType })
         ) { backStackEntry ->
-            val foodyOrder = backStackEntry.arguments?.parcelable<FoodyOrderDto>(ARG_ORDER)
-            val order = FoodyOrderDto(
-                id = "id2",
-                state = "COOKING",
-                price = 200,
-                item = "item2",
-                shelf = "COLD",
-                timestamp = 20000,
-                destination = "destination2",
-                changelog = listOf()
-            )
-            OrderDetailsScreen(order = order)
+            val orderId = backStackEntry.arguments?.getString(NAV_ARG_ORDER_ID)!!
+            OrderDetailsScreen(orderId = orderId)
         }
 
         // Dice Roller

@@ -39,7 +39,6 @@ interface FoodyViewModel {
 
     suspend fun updateOrders()
     fun onOrderClick(order: FoodyOrderDto)
-    fun getOrderById(orderId: String): FoodyOrderDto?
     fun getOrderCardBackgroundColor(order: FoodyOrderDto): Color
     fun dispose()
 }
@@ -51,8 +50,6 @@ class FoodyViewModelImpl(val foodyRepository: FoodyRepository) : ViewModel(), Fo
 
     private val _eventFlow = MutableSharedFlow<Event>()
     override val eventFlow = _eventFlow.asSharedFlow()
-
-    private val _orders = mutableMapOf<String, FoodyOrderDto>() // Store orders by ID
 
     private var _numOrdersTrashed = 0
     override val numOrdersTrashed: Int get() = _numOrdersTrashed
@@ -89,12 +86,8 @@ class FoodyViewModelImpl(val foodyRepository: FoodyRepository) : ViewModel(), Fo
     override fun onOrderClick(order: FoodyOrderDto) {
         Log.i(TAG, "Order clicked: ${order.item}")
         viewModelScope.launch {
-            _eventFlow.emit(Event.NavigateToOrderDetails(order))
+            _eventFlow.emit(Event.NavigateToOrderDetails(order.id))
         }
-    }
-
-    override fun getOrderById(orderId: String): FoodyOrderDto? {
-        return _orders[orderId]
     }
 
     override fun getOrderCardBackgroundColor(order: FoodyOrderDto): Color {
@@ -118,45 +111,48 @@ class FoodyViewModelImpl(val foodyRepository: FoodyRepository) : ViewModel(), Fo
     @VisibleForTesting(otherwise = PRIVATE)
     internal fun updateOrders(newOrders: List<FoodyOrderDto>) {
         for (newOrder in newOrders) {
-            val existingOrder = _orders[newOrder.id]
+            val existingOrder = foodyRepository.getOrderById(newOrder.id)
 
             if (existingOrder == null) {
-                _orders[newOrder.id] = newOrder // Add or update the order
+                foodyRepository.setOrderById( // Add new order
+                    orderId = newOrder.id,
+                    newOrder = newOrder
+                )
             } else if (newOrder.timestamp > existingOrder.timestamp) {
                 updateOrderAndCreateChangelog(
-                    order = existingOrder,
+                    olderOrder = existingOrder,
                     newState = newOrder.state,
                     newShelf = Shelf.valueOf(newOrder.shelf)
                 )
             }
         }
-        _viewState.value = OrdersViewState.UpdateOrders(_orders.values.toList())
+        _viewState.value = OrdersViewState.UpdateOrders(foodyRepository.orders.values.toList())
     }
 
     private fun updateOrderAndCreateChangelog(
-        order: FoodyOrderDto,
+        olderOrder: FoodyOrderDto,
         newState: String? = null,
         newShelf: Shelf? = null
     ) {
         val changelogEntries = mutableListOf<ChangelogEntry>()
 
-        if (newState != null && newState != order.state) {
+        if (newState != null && newState != olderOrder.state) {
             changelogEntries.add(
                 ChangelogEntry(
                     timestamp = System.currentTimeMillis(),
                     changeType = "State Change",
-                    oldValue = order.state,
+                    oldValue = olderOrder.state,
                     newValue = newState
                 )
             )
         }
 
-        if (newShelf != null && newShelf != Shelf.valueOf(order.shelf)) {
+        if (newShelf != null && newShelf != Shelf.valueOf(olderOrder.shelf)) {
             changelogEntries.add(
                 ChangelogEntry(
                     timestamp = System.currentTimeMillis(),
                     changeType = "Shelf Change",
-                    oldValue = order.shelf,
+                    oldValue = olderOrder.shelf,
                     newValue = newShelf.name
                 )
             )
@@ -165,24 +161,27 @@ class FoodyViewModelImpl(val foodyRepository: FoodyRepository) : ViewModel(), Fo
         if (changelogEntries.isNotEmpty()) {
             if (newState == "TRASHED") {
                 _numOrdersTrashed++
-                _totalWaste += order.price
+                _totalWaste += olderOrder.price
             }
 
             if (newState == "DELIVERED") {
                 _numOrdersDelivered++
-                _totalSales += order.price
+                _totalSales += olderOrder.price
             }
 
-            val updatedOrder = order.copy(
-                state = newState ?: order.state,
-                shelf = (newShelf ?: Shelf.valueOf(order.shelf)).name,
-                changelog = (order.changelog ?: emptyList()) + changelogEntries
+            val updatedOrder = olderOrder.copy(
+                state = newState ?: olderOrder.state,
+                shelf = (newShelf ?: Shelf.valueOf(olderOrder.shelf)).name,
+                changelog = (olderOrder.changelog ?: emptyList()) + changelogEntries
             )
 
             if (newState in listOf("TRASHED", "DELIVERED", "CANCELLED")) {
-                _orders.remove(order.id) // Remove terminal state orders
+                foodyRepository.removeOrderById(olderOrder.id) // Remove terminal state orders
             } else {
-                _orders[order.id] = updatedOrder // Update non-terminal state orders
+                foodyRepository.setOrderById( // Update non-terminal state orders
+                    orderId = olderOrder.id,
+                    newOrder = updatedOrder
+                )
             }
         }
     }
@@ -196,6 +195,6 @@ sealed class OrdersViewState {
 }
 
 sealed class Event {
-    data class NavigateToOrderDetails(val order: FoodyOrderDto) : Event()
+    data class NavigateToOrderDetails(val orderId: String) : Event()
     data object Dispose : Event()
 }
