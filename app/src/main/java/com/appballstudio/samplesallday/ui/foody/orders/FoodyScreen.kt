@@ -32,9 +32,9 @@ import androidx.lifecycle.repeatOnLifecycle
 import androidx.navigation.NavHostController
 import com.appballstudio.samplesallday.R
 import com.appballstudio.samplesallday.domain.foody.model.FoodyOrderDto
+import com.appballstudio.samplesallday.ui.common.HandleViewStateError
 import com.appballstudio.samplesallday.ui.common.MetricCard
 import com.appballstudio.samplesallday.ui.foody.orderdetails.NAV_ROUTE_ORDER_DETAILS
-import com.appballstudio.samplesallday.ui.foody.theme.HandleViewStateError
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay

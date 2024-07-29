@@ -21,7 +21,4 @@ dependencyResolutionManagement {
 
 rootProject.name = "SamplesAllDay"
 include(":app")
-include(":data")
-include(":domain")
 include(":presentation:dicebomb")
-include(":presentation:foody")

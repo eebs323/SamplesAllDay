@@ -1,4 +1,4 @@
-package com.appballstudio.samplesallday.ui.foody.theme
+package com.appballstudio.samplesallday.ui.common
 
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize

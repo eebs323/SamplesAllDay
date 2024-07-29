@@ -4,7 +4,6 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -23,7 +22,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.appballstudio.samplesallday.domain.foody.model.ChangelogEntry
 import com.appballstudio.samplesallday.domain.foody.model.FoodyOrderDto
-import com.appballstudio.samplesallday.ui.foody.theme.HandleViewStateError
+import com.appballstudio.samplesallday.ui.common.HandleViewStateError
 import org.koin.androidx.compose.koinViewModel
 import java.util.Date
 
