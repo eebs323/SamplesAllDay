@@ -10,6 +10,7 @@ import com.appballstudio.samplesallday.R
 import com.appballstudio.samplesallday.domain.foody.model.ChangelogEntry
 import com.appballstudio.samplesallday.domain.foody.model.FoodyOrderDto
 import com.appballstudio.samplesallday.domain.foody.model.Shelf
+import com.appballstudio.samplesallday.domain.foody.model.State
 import com.appballstudio.samplesallday.domain.foody.repository.FoodyRepository
 import com.appballstudio.samplesallday.extensions.TAG
 import com.appballstudio.samplesallday.ui.foody.theme.LightBlue
@@ -120,72 +121,60 @@ class FoodyViewModelImpl(
                     orderId = updatedOrder.id,
                     newOrder = updatedOrder
                 )
-            } else if (updatedOrder.timestamp > existingOrder.timestamp) {
-                updateOrderAndCreateChangelog(  // Update existing order
-                    existingOrder = existingOrder,
-                    newState = updatedOrder.state,
-                    newShelf = Shelf.valueOf(updatedOrder.shelf)
-                )
-            }
+            } else if (updatedOrder.timestamp > existingOrder.timestamp &&
+                (updatedOrder.state != existingOrder.state || updatedOrder.shelf != existingOrder.shelf)) {
+                    val updatedOrderState = updatedOrder.state
+                    val updatedOrderShelf = updatedOrder.shelf
+                    val changelogEntries = mutableListOf<ChangelogEntry>()
+
+                    if (updatedOrderState != existingOrder.state) {
+                        changelogEntries.add(
+                            ChangelogEntry(
+                                timestamp = updatedOrder.timestamp,
+                                changeType = "State Change",
+                                oldValue = existingOrder.state,
+                                newValue = updatedOrderState
+                            )
+                        )
+                    }
+
+                    if (updatedOrderShelf != existingOrder.shelf) {
+                        changelogEntries.add(
+                            ChangelogEntry(
+                                timestamp = updatedOrder.timestamp,
+                                changeType = "Shelf Change",
+                                oldValue = existingOrder.shelf,
+                                newValue = updatedOrderShelf
+                            )
+                        )
+                    }
+
+                    if (updatedOrderState == State.TRASHED.name) {
+                        _numOrdersTrashed++
+                        _totalWaste += existingOrder.price
+                    }
+
+                    if (updatedOrderState == State.DELIVERED.name) {
+                        _numOrdersDelivered++
+                        _totalSales += existingOrder.price
+                    }
+
+                    if (updatedOrderState in listOf(State.TRASHED.name, State.DELIVERED.name, State.CANCELLED.name)) {
+                        foodyRepository.removeOrderById(existingOrder.id) // Remove terminal state orders
+                    } else {
+                        foodyRepository.setOrderById( // Update non-terminal state orders
+                            orderId = existingOrder.id,
+                            newOrder = existingOrder.copy(
+                                state = updatedOrderState,
+                                shelf = updatedOrderShelf,
+                                timestamp = updatedOrder.timestamp,
+                                changelog = (existingOrder.changelog ?: emptyList()) + changelogEntries
+                            )
+                        )
+                    }
+                }
         }
         _viewState.value = OrdersViewState.UpdateOrders(foodyRepository.orders.values.toList())
-    }
-
-    private fun updateOrderAndCreateChangelog(
-        existingOrder: FoodyOrderDto,
-        newState: String? = null,
-        newShelf: Shelf? = null
-    ) {
-        val changelogEntries = mutableListOf<ChangelogEntry>()
-
-        if (newState != null && newState != existingOrder.state) {
-            changelogEntries.add(
-                ChangelogEntry(
-                    timestamp = System.currentTimeMillis(),
-                    changeType = "State Change",
-                    oldValue = existingOrder.state,
-                    newValue = newState
-                )
-            )
-        }
-
-        if (newShelf != null && newShelf != Shelf.valueOf(existingOrder.shelf)) {
-            changelogEntries.add(
-                ChangelogEntry(
-                    timestamp = System.currentTimeMillis(),
-                    changeType = "Shelf Change",
-                    oldValue = existingOrder.shelf,
-                    newValue = newShelf.name
-                )
-            )
-        }
-
-        if (changelogEntries.isNotEmpty()) {
-            if (newState == "TRASHED") {
-                _numOrdersTrashed++
-                _totalWaste += existingOrder.price
-            }
-
-            if (newState == "DELIVERED") {
-                _numOrdersDelivered++
-                _totalSales += existingOrder.price
-            }
-
-            val updatedOrder = existingOrder.copy(
-                state = newState ?: existingOrder.state,
-                shelf = (newShelf ?: Shelf.valueOf(existingOrder.shelf)).name,
-                changelog = (existingOrder.changelog ?: emptyList()) + changelogEntries
-            )
-
-            if (newState in listOf("TRASHED", "DELIVERED", "CANCELLED")) {
-                foodyRepository.removeOrderById(existingOrder.id) // Remove terminal state orders
-            } else {
-                foodyRepository.setOrderById( // Update non-terminal state orders
-                    orderId = existingOrder.id,
-                    newOrder = updatedOrder
-                )
-            }
-        }
     }
 }
 

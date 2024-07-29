@@ -21,3 +21,7 @@ data class ChangelogEntry(
 enum class Shelf {
     HOT, COLD, FROZEN, OVERFLOW, NONE
 }
+
+enum class State {
+    CREATED, COOKING, WAITING, DELIVERED, TRASHED, CANCELLED
+}

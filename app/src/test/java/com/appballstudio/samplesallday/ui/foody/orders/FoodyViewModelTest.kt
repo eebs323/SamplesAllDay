@@ -3,8 +3,10 @@ package com.appballstudio.samplesallday.ui.foody.orders
 import androidx.lifecycle.viewModelScope
 import com.appballstudio.samplesallday.R
 import com.appballstudio.samplesallday.data.foody.repository.FoodyRepositoryImpl
+import com.appballstudio.samplesallday.domain.foody.model.ChangelogEntry
 import com.appballstudio.samplesallday.domain.foody.model.FoodyOrderDto
 import com.appballstudio.samplesallday.domain.foody.model.Shelf
+import com.appballstudio.samplesallday.domain.foody.model.State
 import com.appballstudio.samplesallday.domain.foody.repository.FoodyRepository
 import com.appballstudio.samplesallday.ui.foody.theme.LightBlue
 import com.appballstudio.samplesallday.ui.foody.theme.LightGray
@@ -18,11 +20,12 @@ import io.mockk.coEvery
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.spyk
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.take
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.launch
+import java.text.NumberFormat
+import java.util.Locale
 
 class FoodyViewModelTest : FunSpec({
     initTest()
@@ -46,48 +49,6 @@ class FoodyViewModelTest : FunSpec({
         viewModel.viewState.first() shouldBe expectedViewState
     }
 
-    test("updateOrders should update existing ones") {
-        val existingOrder = mockk<FoodyOrderDto>(relaxed = true)
-        val updatedOrder = mockk<FoodyOrderDto>(relaxed = true)
-        val updatedOrders = listOf(updatedOrder)
-        val existingOrderId = "1"
-
-        every { updatedOrder.timestamp } returns 2
-        every { existingOrder.timestamp } returns 1
-        every { existingOrder.id } returns existingOrderId
-        every { updatedOrder.id } returns existingOrderId
-        coEvery { spyRepository.getOrders() } returns updatedOrders
-        coEvery { spyRepository.getOrderById(updatedOrder.id) } returns existingOrder
-
-        viewModel.updateOrders()
-
-        val expectedViewState = OrdersViewState.UpdateOrders(updatedOrders)
-        val actualViewStates = viewModel.viewState.take(1).toList()
-        actualViewStates.firstOrNull() shouldBe expectedViewState
-    }
-
-//    test("updateOrders should remove terminated state orders") {
-//        val existingOrder = mockk<FoodyOrderDto>(relaxed = true)
-//        val updatedOrder = mockk<FoodyOrderDto>(relaxed = true)
-//        val updatedOrders = listOf(updatedOrder)
-//        val newState = "TRASHED"
-//        val existingOrderId = "1"
-//
-//        every { updatedOrder.state } returns newState
-//        every { updatedOrder.timestamp } returns 2
-//        every { existingOrder.timestamp } returns 1
-//        every { existingOrder.id } returns existingOrderId
-//        every { updatedOrder.id } returns existingOrderId
-//        coEvery { spyRepository.getOrders() } returns updatedOrders
-//        coEvery { spyRepository.getOrderById(existingOrderId) } returns existingOrder
-//
-//        viewModel.updateOrders()
-//
-//        val expectedViewState = OrdersViewState.UpdateOrders(listOf())
-//        val actualViewStates = viewModel.viewState.take(1).toList()
-//        actualViewStates.firstOrNull() shouldBe expectedViewState
-//    }
-
     test("updateOrders should add new ones") {
         val existingOrder = null
         val updatedOrder = mockk<FoodyOrderDto>()
@@ -102,6 +63,263 @@ class FoodyViewModelTest : FunSpec({
         val expectedViewState = OrdersViewState.UpdateOrders(updatedOrders)
         val actualViewStates = viewModel.viewState.take(1).toList()
         actualViewStates.firstOrNull() shouldBe expectedViewState
+    }
+
+    test("updateOrders should update existing ones") {
+        val existingOrderId = "1"
+        val existingOrderState = State.CREATED.name
+        val existingOrderPrice = 10
+        val existingOrderItem = "Burger"
+        val existingOrderShelf = Shelf.COLD.name
+        val existingOrderTimestamp = 1L
+        val existingOrderDestination = "Table 1"
+        val existingOrder = FoodyOrderDto(
+            id = existingOrderId,
+            state = existingOrderState,
+            price = existingOrderPrice,
+            item = existingOrderItem,
+            shelf = existingOrderShelf,
+            timestamp = existingOrderTimestamp,
+            destination = existingOrderDestination
+        )
+
+        val updatedOrderId = "1"
+        val updatedOrderState = State.COOKING.name
+        val updatedOrderPrice = 10
+        val updatedOrderItem = "Burger"
+        val updatedOrderShelf = Shelf.HOT.name
+        val updatedOrderTimestamp = 2L
+        val updatedOrderDestination = "Table 1"
+        val updatedOrder = FoodyOrderDto(
+            id = updatedOrderId,
+            state = updatedOrderState,
+            price = updatedOrderPrice,
+            item = updatedOrderItem,
+            shelf = updatedOrderShelf,
+            timestamp = updatedOrderTimestamp,
+            destination = updatedOrderDestination,
+            changelog = mutableListOf(
+                ChangelogEntry(
+                    timestamp = updatedOrderTimestamp,
+                    changeType = "State Change",
+                    oldValue = existingOrderState,
+                    newValue = updatedOrderState
+                ),
+                ChangelogEntry(
+                    timestamp = updatedOrderTimestamp,
+                    changeType = "Shelf Change",
+                    oldValue = existingOrderShelf,
+                    newValue = updatedOrderShelf
+                )
+            )
+        )
+
+        val updatedOrders = listOf(updatedOrder)
+
+        coEvery { spyRepository.getOrders() } returns updatedOrders
+        coEvery { spyRepository.getOrderById(existingOrderId) } returns existingOrder
+
+        viewModel.updateOrders()
+
+        val expectedViewState = OrdersViewState.UpdateOrders(updatedOrders)
+        val actualViewStates = viewModel.viewState.take(1).toList()
+        actualViewStates.firstOrNull() shouldBe expectedViewState
+    }
+
+    test("updateOrders should remove TRASHED terminated state order") {
+        val existingOrderId = "1"
+        val existingOrderState = State.CREATED.name
+        val existingOrderPrice = 10
+        val existingOrderItem = "Burger"
+        val existingOrderShelf = Shelf.COLD.name
+        val existingOrderTimestamp = 1L
+        val existingOrderDestination = "Table 1"
+        val existingOrder = FoodyOrderDto(
+            id = existingOrderId,
+            state = existingOrderState,
+            price = existingOrderPrice,
+            item = existingOrderItem,
+            shelf = existingOrderShelf,
+            timestamp = existingOrderTimestamp,
+            destination = existingOrderDestination
+        )
+
+        val updatedOrderId = "1"
+        val updatedOrderState = State.TRASHED.name
+        val updatedOrderPrice = 10
+        val updatedOrderItem = "Burger"
+        val updatedOrderShelf = Shelf.HOT.name
+        val updatedOrderTimestamp = 2L
+        val updatedOrderDestination = "Table 1"
+        val updatedOrder = FoodyOrderDto(
+            id = updatedOrderId,
+            state = updatedOrderState,
+            price = updatedOrderPrice,
+            item = updatedOrderItem,
+            shelf = updatedOrderShelf,
+            timestamp = updatedOrderTimestamp,
+            destination = updatedOrderDestination,
+            changelog = mutableListOf(
+                ChangelogEntry(
+                    timestamp = updatedOrderTimestamp,
+                    changeType = "State Change",
+                    oldValue = existingOrderState,
+                    newValue = updatedOrderState
+                ),
+                ChangelogEntry(
+                    timestamp = updatedOrderTimestamp,
+                    changeType = "Shelf Change",
+                    oldValue = existingOrderShelf,
+                    newValue = updatedOrderShelf
+                )
+            )
+        )
+        val updatedOrders = listOf(updatedOrder)
+
+        coEvery { spyRepository.getOrders() } returns updatedOrders
+        coEvery { spyRepository.getOrderById(existingOrderId) } returns existingOrder
+
+        viewModel.updateOrders()
+
+        val expectedViewState = OrdersViewState.UpdateOrders(listOf())
+        val actualViewStates = viewModel.viewState.take(1).toList()
+        actualViewStates.firstOrNull() shouldBe expectedViewState
+        viewModel.numOrdersTrashed shouldBe 1
+        viewModel.totalWaste shouldBe NumberFormat.getNumberInstance(Locale.US).format(updatedOrderPrice)
+        viewModel.numOrdersDelivered shouldBe 0
+        viewModel.totalSales shouldBe "0"
+        NumberFormat.getNumberInstance(Locale.US).format(viewModel.totalSales.toInt() - viewModel.totalWaste.toInt())
+    }
+
+    test("updateOrders should remove DELIVERED terminated state order") {
+        val existingOrderId = "1"
+        val existingOrderState = State.CREATED.name
+        val existingOrderPrice = 10
+        val existingOrderItem = "Burger"
+        val existingOrderShelf = Shelf.COLD.name
+        val existingOrderTimestamp = 1L
+        val existingOrderDestination = "Table 1"
+        val existingOrder = FoodyOrderDto(
+            id = existingOrderId,
+            state = existingOrderState,
+            price = existingOrderPrice,
+            item = existingOrderItem,
+            shelf = existingOrderShelf,
+            timestamp = existingOrderTimestamp,
+            destination = existingOrderDestination
+        )
+
+        val updatedOrderId = "1"
+        val updatedOrderState = State.DELIVERED.name
+        val updatedOrderPrice = 10
+        val updatedOrderItem = "Burger"
+        val updatedOrderShelf = Shelf.HOT.name
+        val updatedOrderTimestamp = 2L
+        val updatedOrderDestination = "Table 1"
+        val updatedOrder = FoodyOrderDto(
+            id = updatedOrderId,
+            state = updatedOrderState,
+            price = updatedOrderPrice,
+            item = updatedOrderItem,
+            shelf = updatedOrderShelf,
+            timestamp = updatedOrderTimestamp,
+            destination = updatedOrderDestination,
+            changelog = mutableListOf(
+                ChangelogEntry(
+                    timestamp = updatedOrderTimestamp,
+                    changeType = "State Change",
+                    oldValue = existingOrderState,
+                    newValue = updatedOrderState
+                ),
+                ChangelogEntry(
+                    timestamp = updatedOrderTimestamp,
+                    changeType = "Shelf Change",
+                    oldValue = existingOrderShelf,
+                    newValue = updatedOrderShelf
+                )
+            )
+        )
+        val updatedOrders = listOf(updatedOrder)
+
+        coEvery { spyRepository.getOrders() } returns updatedOrders
+        coEvery { spyRepository.getOrderById(existingOrderId) } returns existingOrder
+
+        viewModel.updateOrders()
+
+        val expectedViewState = OrdersViewState.UpdateOrders(listOf())
+        val actualViewStates = viewModel.viewState.take(1).toList()
+        actualViewStates.firstOrNull() shouldBe expectedViewState
+        viewModel.numOrdersTrashed shouldBe 0
+        viewModel.totalWaste shouldBe "0"
+        viewModel.numOrdersDelivered shouldBe 1
+        viewModel.totalSales shouldBe NumberFormat.getNumberInstance(Locale.US).format(updatedOrderPrice)
+        NumberFormat.getNumberInstance(Locale.US).format(viewModel.totalSales.toInt() - viewModel.totalWaste.toInt())
+    }
+
+    test("updateOrders should remove CANCELLED terminated state order") {
+        val existingOrderId = "1"
+        val existingOrderState = State.CREATED.name
+        val existingOrderPrice = 10
+        val existingOrderItem = "Burger"
+        val existingOrderShelf = Shelf.COLD.name
+        val existingOrderTimestamp = 1L
+        val existingOrderDestination = "Table 1"
+        val existingOrder = FoodyOrderDto(
+            id = existingOrderId,
+            state = existingOrderState,
+            price = existingOrderPrice,
+            item = existingOrderItem,
+            shelf = existingOrderShelf,
+            timestamp = existingOrderTimestamp,
+            destination = existingOrderDestination
+        )
+
+        val updatedOrderId = "1"
+        val updatedOrderState = State.CANCELLED.name
+        val updatedOrderPrice = 10
+        val updatedOrderItem = "Burger"
+        val updatedOrderShelf = Shelf.HOT.name
+        val updatedOrderTimestamp = 2L
+        val updatedOrderDestination = "Table 1"
+        val updatedOrder = FoodyOrderDto(
+            id = updatedOrderId,
+            state = updatedOrderState,
+            price = updatedOrderPrice,
+            item = updatedOrderItem,
+            shelf = updatedOrderShelf,
+            timestamp = updatedOrderTimestamp,
+            destination = updatedOrderDestination,
+            changelog = mutableListOf(
+                ChangelogEntry(
+                    timestamp = updatedOrderTimestamp,
+                    changeType = "State Change",
+                    oldValue = existingOrderState,
+                    newValue = updatedOrderState
+                ),
+                ChangelogEntry(
+                    timestamp = updatedOrderTimestamp,
+                    changeType = "Shelf Change",
+                    oldValue = existingOrderShelf,
+                    newValue = updatedOrderShelf
+                )
+            )
+        )
+        val updatedOrders = listOf(updatedOrder)
+
+        coEvery { spyRepository.getOrders() } returns updatedOrders
+        coEvery { spyRepository.getOrderById(existingOrderId) } returns existingOrder
+
+        viewModel.updateOrders()
+
+        val expectedViewState = OrdersViewState.UpdateOrders(listOf())
+        val actualViewStates = viewModel.viewState.take(1).toList()
+        actualViewStates.firstOrNull() shouldBe expectedViewState
+        viewModel.numOrdersTrashed shouldBe 0
+        viewModel.totalWaste shouldBe "0"
+        viewModel.numOrdersDelivered shouldBe 0
+        viewModel.totalSales shouldBe "0"
+        NumberFormat.getNumberInstance(Locale.US).format(viewModel.totalSales.toInt() - viewModel.totalWaste.toInt())
+
     }
 
     test("updateOrders should emit Error when an exception occurs") {
