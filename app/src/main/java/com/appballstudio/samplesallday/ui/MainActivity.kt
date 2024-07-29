@@ -13,12 +13,9 @@ import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.appballstudio.dicebomb.ui.DiceRoller
 import com.appballstudio.dicebomb.ui.NAV_ROUTE_DICEY
-import com.appballstudio.samplesallday.domain.foody.model.FoodyOrderDto
-import com.appballstudio.samplesallday.extensions.parcelable
 import com.appballstudio.samplesallday.ui.foody.orderdetails.NAV_ARG_ORDER_ID
 import com.appballstudio.samplesallday.ui.foody.orderdetails.NAV_ROUTE_ORDER_DETAILS
 import com.appballstudio.samplesallday.ui.foody.orderdetails.OrderDetailsScreen
-import com.appballstudio.samplesallday.ui.foody.orders.ARG_ORDER
 import com.appballstudio.samplesallday.ui.foody.orders.FoodyScreen
 import com.appballstudio.samplesallday.ui.foody.orders.NAV_ROUTE_FOODY
 import com.appballstudio.samplesallday.ui.theme.SamplesAllDayTheme

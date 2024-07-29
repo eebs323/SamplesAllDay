@@ -42,8 +42,8 @@ import kotlinx.coroutines.launch
 import org.koin.androidx.compose.koinViewModel
 
 const val NAV_ROUTE_FOODY = "ROUTE_FOODY"
-const val ARG_ORDER = "ARG_ORDER"
 var ordersJob: Job? = null
+private var currentMainState: OrdersViewState? = null
 
 @Composable
 fun FoodyScreen(
@@ -86,20 +86,23 @@ fun ObserveViewState() {
         modifier = Modifier.fillMaxSize(),
         color = MaterialTheme.colorScheme.background
     ) {
-        val orderViewState by koinViewModel<FoodyViewModelImpl>().viewState.collectAsState()
-        when (orderViewState) {
-            is OrdersViewState.Loading -> HandleViewStateLoading()
-            is OrdersViewState.Error -> HandleViewStateError(
-                messageResId = (orderViewState as OrdersViewState.Error).messageResId
-            )
+        val viewState by koinViewModel<FoodyViewModelImpl>().viewState.collectAsState()
+        if (currentMainState != viewState) {
+            currentMainState = viewState
+            when (viewState) {
+                is OrdersViewState.Loading -> HandleViewStateLoading()
+                is OrdersViewState.Error -> HandleViewStateError(
+                    messageResId = (viewState as OrdersViewState.Error).messageResId
+                )
 
-            is OrdersViewState.KitchenClosed -> HandleViewStateKitchenClosed(
-                kitchenClosed = orderViewState as OrdersViewState.KitchenClosed
-            )
+                is OrdersViewState.KitchenClosed -> HandleViewStateKitchenClosed(
+                    kitchenClosed = viewState as OrdersViewState.KitchenClosed
+                )
 
-            is OrdersViewState.UpdateOrders -> HandleViewStateUpdateOrders(
-                ordersViewState = orderViewState as OrdersViewState.UpdateOrders
-            )
+                is OrdersViewState.UpdateOrders -> HandleViewStateUpdateOrders(
+                    ordersViewState = viewState as OrdersViewState.UpdateOrders
+                )
+            }
         }
     }
 }
