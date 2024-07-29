@@ -25,12 +25,12 @@ class OrderDetailsViewModelImpl(val foodyRepository: FoodyRepository) : ViewMode
         try {
             val order = foodyRepository.getOrderById(orderId!!)
             _viewState.value = OrderDetailsViewState.Loaded(order!!)
+            Log.e(TAG, "order details loaded successfully")
         } catch (e: Exception) {
             Log.e(TAG, "Error loading order details", e)
             _viewState.value = OrderDetailsViewState.Error(R.string.order_not_found)
         }
     }
-
 }
 
 sealed class OrderDetailsViewState {

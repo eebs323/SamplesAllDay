@@ -2,6 +2,7 @@ package com.appballstudio.samplesallday.ui.foody.orders
 
 import androidx.lifecycle.viewModelScope
 import com.appballstudio.samplesallday.R
+import com.appballstudio.samplesallday.data.foody.repository.FoodyRepositoryImpl
 import com.appballstudio.samplesallday.domain.foody.model.FoodyOrderDto
 import com.appballstudio.samplesallday.domain.foody.model.Shelf
 import com.appballstudio.samplesallday.domain.foody.repository.FoodyRepository
@@ -14,7 +15,10 @@ import com.appballstudio.samplesallday.utils.initTest
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
 import io.mockk.coEvery
+import io.mockk.every
 import io.mockk.mockk
+import io.mockk.spyk
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.take
 import kotlinx.coroutines.flow.toList
@@ -23,11 +27,18 @@ import kotlinx.coroutines.launch
 class FoodyViewModelTest : FunSpec({
     initTest()
 
-    val mockRepository = mockk<FoodyRepository>()
-    val viewModel = FoodyViewModelImpl(mockRepository)
+    lateinit var viewModel: FoodyViewModelImpl
+    lateinit var spyRepository: FoodyRepository
+
+    beforeTest {
+        spyRepository = spyk(FoodyRepositoryImpl(mockk()))
+        viewModel = FoodyViewModelImpl(
+            foodyRepository = spyRepository,
+        )
+    }
 
     test("updateOrders should emit KitchenClosed when no new orders are available") {
-        coEvery { mockRepository.getOrders() } returns emptyList() // Mock empty orders
+        coEvery { spyRepository.getOrders() } returns emptyList() // Mock empty orders
 
         viewModel.updateOrders()
 
@@ -35,30 +46,67 @@ class FoodyViewModelTest : FunSpec({
         viewModel.viewState.first() shouldBe expectedViewState
     }
 
-    test("updateOrders should add new orders and update existing ones") {
-        val existingOrders = listOf(FoodyOrderDto("1", "preparing", 10, "Burger", "A", 1678886400, "Table 1", emptyList()))
-        val newOrders = listOf(
-            FoodyOrderDto("2", "ready", 12, "Pizza", "B", 1678972800, "Table 2", emptyList()),
-            FoodyOrderDto("1", "delivered", 10, "Burger", "A", 1678972800, "Table 1", emptyList())
-        )
+    test("updateOrders should update existing ones") {
+        val existingOrder = mockk<FoodyOrderDto>(relaxed = true)
+        val updatedOrder = mockk<FoodyOrderDto>(relaxed = true)
+        val updatedOrders = listOf(updatedOrder)
+        val existingOrderId = "1"
 
-        viewModel.updateOrders(existingOrders)
+        every { updatedOrder.timestamp } returns 2
+        every { existingOrder.timestamp } returns 1
+        every { existingOrder.id } returns existingOrderId
+        every { updatedOrder.id } returns existingOrderId
+        coEvery { spyRepository.getOrders() } returns updatedOrders
+        coEvery { spyRepository.getOrderById(updatedOrder.id) } returns existingOrder
 
-        coEvery { mockRepository.getOrders() } returns newOrders
         viewModel.updateOrders()
 
-        val expectedOrders = listOf(
-            FoodyOrderDto("1", "delivered", 10, "Burger", "A", 1678972800, "Table 1", emptyList()),
-            FoodyOrderDto("2", "ready", 12, "Pizza", "B", 1678972800, "Table 2", emptyList())
-        )
-        val expectedViewState = OrdersViewState.UpdateOrders(expectedOrders)
+        val expectedViewState = OrdersViewState.UpdateOrders(updatedOrders)
+        val actualViewStates = viewModel.viewState.take(1).toList()
+        actualViewStates.firstOrNull() shouldBe expectedViewState
+    }
+
+//    test("updateOrders should remove terminated state orders") {
+//        val existingOrder = mockk<FoodyOrderDto>(relaxed = true)
+//        val updatedOrder = mockk<FoodyOrderDto>(relaxed = true)
+//        val updatedOrders = listOf(updatedOrder)
+//        val newState = "TRASHED"
+//        val existingOrderId = "1"
+//
+//        every { updatedOrder.state } returns newState
+//        every { updatedOrder.timestamp } returns 2
+//        every { existingOrder.timestamp } returns 1
+//        every { existingOrder.id } returns existingOrderId
+//        every { updatedOrder.id } returns existingOrderId
+//        coEvery { spyRepository.getOrders() } returns updatedOrders
+//        coEvery { spyRepository.getOrderById(existingOrderId) } returns existingOrder
+//
+//        viewModel.updateOrders()
+//
+//        val expectedViewState = OrdersViewState.UpdateOrders(listOf())
+//        val actualViewStates = viewModel.viewState.take(1).toList()
+//        actualViewStates.firstOrNull() shouldBe expectedViewState
+//    }
+
+    test("updateOrders should add new ones") {
+        val existingOrder = null
+        val updatedOrder = mockk<FoodyOrderDto>()
+        val updatedOrders = listOf(updatedOrder)
+
+        every { updatedOrder.id } returns "1"
+        coEvery { spyRepository.getOrders() } returns updatedOrders
+        coEvery { spyRepository.getOrderById(updatedOrder.id) } returns existingOrder
+
+        viewModel.updateOrders()
+
+        val expectedViewState = OrdersViewState.UpdateOrders(updatedOrders)
         val actualViewStates = viewModel.viewState.take(1).toList()
         actualViewStates.firstOrNull() shouldBe expectedViewState
     }
 
     test("updateOrders should emit Error when an exception occurs") {
         val exception = Exception("Network error")
-        coEvery { mockRepository.getOrders() } throws exception
+        coEvery { spyRepository.getOrders() } throws exception
         viewModel.updateOrders()
 
         val expectedViewState = OrdersViewState.Error(R.string.update_orders_failed)
@@ -69,8 +117,10 @@ class FoodyViewModelTest : FunSpec({
         val testOrderId = "order123"
         val events = mutableListOf<Event>()
         val job = eventJob(viewModel, events)
+        val mockOrder = mockk<FoodyOrderDto>(relaxed = true)
+        every { mockOrder.id } returns testOrderId
 
-        viewModel.onOrderClick(testOrderId)
+        viewModel.onOrderClick(mockOrder)
         job.cancel() // Cancel the collection job to avoid blocking the test
 
         events shouldBe listOf(Event.NavigateToOrderDetails(testOrderId))

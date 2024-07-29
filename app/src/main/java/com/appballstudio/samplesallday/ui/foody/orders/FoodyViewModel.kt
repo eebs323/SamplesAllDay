@@ -43,7 +43,9 @@ interface FoodyViewModel {
     fun dispose()
 }
 
-class FoodyViewModelImpl(val foodyRepository: FoodyRepository) : ViewModel(), FoodyViewModel {
+class FoodyViewModelImpl(
+    val foodyRepository: FoodyRepository,
+) : ViewModel(), FoodyViewModel {
 
     private val _viewState = MutableStateFlow<OrdersViewState>(OrdersViewState.Loading)
     override val viewState = _viewState.asStateFlow()
@@ -68,11 +70,11 @@ class FoodyViewModelImpl(val foodyRepository: FoodyRepository) : ViewModel(), Fo
     override suspend fun updateOrders() {
         Log.i(TAG, "Checking for order updates")
         try {
-            val newOrders = foodyRepository.getOrders()!!
-            if (newOrders.isEmpty()) {
+            val orders = foodyRepository.getOrders()!!
+            if (orders.isEmpty()) {
                 _viewState.value = OrdersViewState.KitchenClosed(R.string.kitchen_closed)
             } else {
-                updateOrders(newOrders)
+                updateOrders(orders)
             }
             Log.i(TAG, "Orders updated")
         } catch (e: Exception) {
@@ -109,20 +111,20 @@ class FoodyViewModelImpl(val foodyRepository: FoodyRepository) : ViewModel(), Fo
     }
 
     @VisibleForTesting(otherwise = PRIVATE)
-    internal fun updateOrders(newOrders: List<FoodyOrderDto>) {
-        for (newOrder in newOrders) {
-            val existingOrder = foodyRepository.getOrderById(newOrder.id)
+    internal fun updateOrders(updatedOrders: List<FoodyOrderDto>) {
+        for (updatedOrder in updatedOrders) {
+            val existingOrder = foodyRepository.getOrderById(updatedOrder.id)
 
             if (existingOrder == null) {
                 foodyRepository.setOrderById( // Add new order
-                    orderId = newOrder.id,
-                    newOrder = newOrder
+                    orderId = updatedOrder.id,
+                    newOrder = updatedOrder
                 )
-            } else if (newOrder.timestamp > existingOrder.timestamp) {
-                updateOrderAndCreateChangelog(
-                    olderOrder = existingOrder,
-                    newState = newOrder.state,
-                    newShelf = Shelf.valueOf(newOrder.shelf)
+            } else if (updatedOrder.timestamp > existingOrder.timestamp) {
+                updateOrderAndCreateChangelog(  // Update existing order
+                    existingOrder = existingOrder,
+                    newState = updatedOrder.state,
+                    newShelf = Shelf.valueOf(updatedOrder.shelf)
                 )
             }
         }
@@ -130,29 +132,29 @@ class FoodyViewModelImpl(val foodyRepository: FoodyRepository) : ViewModel(), Fo
     }
 
     private fun updateOrderAndCreateChangelog(
-        olderOrder: FoodyOrderDto,
+        existingOrder: FoodyOrderDto,
         newState: String? = null,
         newShelf: Shelf? = null
     ) {
         val changelogEntries = mutableListOf<ChangelogEntry>()
 
-        if (newState != null && newState != olderOrder.state) {
+        if (newState != null && newState != existingOrder.state) {
             changelogEntries.add(
                 ChangelogEntry(
                     timestamp = System.currentTimeMillis(),
                     changeType = "State Change",
-                    oldValue = olderOrder.state,
+                    oldValue = existingOrder.state,
                     newValue = newState
                 )
             )
         }
 
-        if (newShelf != null && newShelf != Shelf.valueOf(olderOrder.shelf)) {
+        if (newShelf != null && newShelf != Shelf.valueOf(existingOrder.shelf)) {
             changelogEntries.add(
                 ChangelogEntry(
                     timestamp = System.currentTimeMillis(),
                     changeType = "Shelf Change",
-                    oldValue = olderOrder.shelf,
+                    oldValue = existingOrder.shelf,
                     newValue = newShelf.name
                 )
             )
@@ -161,25 +163,25 @@ class FoodyViewModelImpl(val foodyRepository: FoodyRepository) : ViewModel(), Fo
         if (changelogEntries.isNotEmpty()) {
             if (newState == "TRASHED") {
                 _numOrdersTrashed++
-                _totalWaste += olderOrder.price
+                _totalWaste += existingOrder.price
             }
 
             if (newState == "DELIVERED") {
                 _numOrdersDelivered++
-                _totalSales += olderOrder.price
+                _totalSales += existingOrder.price
             }
 
-            val updatedOrder = olderOrder.copy(
-                state = newState ?: olderOrder.state,
-                shelf = (newShelf ?: Shelf.valueOf(olderOrder.shelf)).name,
-                changelog = (olderOrder.changelog ?: emptyList()) + changelogEntries
+            val updatedOrder = existingOrder.copy(
+                state = newState ?: existingOrder.state,
+                shelf = (newShelf ?: Shelf.valueOf(existingOrder.shelf)).name,
+                changelog = (existingOrder.changelog ?: emptyList()) + changelogEntries
             )
 
             if (newState in listOf("TRASHED", "DELIVERED", "CANCELLED")) {
-                foodyRepository.removeOrderById(olderOrder.id) // Remove terminal state orders
+                foodyRepository.removeOrderById(existingOrder.id) // Remove terminal state orders
             } else {
                 foodyRepository.setOrderById( // Update non-terminal state orders
-                    orderId = olderOrder.id,
+                    orderId = existingOrder.id,
                     newOrder = updatedOrder
                 )
             }
