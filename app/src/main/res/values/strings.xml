@@ -8,4 +8,16 @@
     <string name="waste">Waste</string>
     <string name="revenue">Revenue</string>
     <string name="order_not_found">Order not found</string>
+    <string name="order_details">Order Details</string>
+    <string name="id">ID</string>
+    <string name="item">Item</string>
+    <string name="price">Price</string>
+    <string name="state">State</string>
+    <string name="shelf">Shelf</string>
+    <string name="destination">Destination</string>
+    <string name="timestamp">Timestamp</string>
+    <string name="no_changes">No changes</string>
+    <string name="changelog">Changelog</string>
+    <string name="change_at">Change at: %1$s</string>
+    <string name="shelf_colon">Shelf: %1$s</string>
 </resources>

@@ -87,13 +87,8 @@ dependencies {
     implementation(libs.retrofit2.coroutines.adapter)
 
     // Testing
-//    testImplementation(libs.kotlin.reflect)
     testImplementation(libs.kotest)
-//    testImplementation(libs.kotestAssertions)
-//    testImplementation(libs.mockk)
     testImplementation(libs.mockkAndroid)
     testImplementation(libs.mockkAgent)
     testImplementation(libs.coroutinesTest)
-//    testImplementation(libs.junit.jupiter)
-
 }

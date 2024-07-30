@@ -214,7 +214,7 @@ fun OrderCard(
                 text = order.item,
                 modifier = Modifier.weight(1f)
             )
-            Text(text = "Shelf: ${order.shelf}") // Shelf name
+            Text(text = stringResource(R.string.shelf_colon, order.shelf)) // Shelf name
         }
     }
 }

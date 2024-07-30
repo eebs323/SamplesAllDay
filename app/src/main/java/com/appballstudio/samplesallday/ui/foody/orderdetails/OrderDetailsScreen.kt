@@ -18,8 +18,10 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import com.appballstudio.samplesallday.R
 import com.appballstudio.samplesallday.domain.foody.model.ChangelogEntry
 import com.appballstudio.samplesallday.domain.foody.model.FoodyOrderDto
 import com.appballstudio.samplesallday.ui.common.HandleViewStateError
@@ -82,23 +84,23 @@ fun OrderDetailsView(order: FoodyOrderDto) {
             modifier = Modifier.padding(16.dp)
         ) {
             Text(
-                text = "Order Details",
+                text = stringResource(R.string.order_details),
                 style = MaterialTheme.typography.headlineSmall,
                 fontWeight = FontWeight.Bold
             )
             Spacer(modifier = Modifier.height(32.dp))
-            OrderAttributeRow("ID", order.id)
-            OrderAttributeRow("Item", order.item)
-            OrderAttributeRow("Price", "$" + order.price.toString())
-            OrderAttributeRow("State", order.state)
-            OrderAttributeRow("Shelf", order.shelf)
-            OrderAttributeRow("Destination", order.destination)
-            OrderAttributeRow("Timestamp", Date(order.timestamp).toString())
+            OrderAttributeRow(stringResource(R.string.id), order.id)
+            OrderAttributeRow(stringResource(R.string.item), order.item)
+            OrderAttributeRow(stringResource(R.string.price), "$" + order.price.toString())
+            OrderAttributeRow(stringResource(R.string.state), order.state)
+            OrderAttributeRow(stringResource(R.string.shelf), order.shelf)
+            OrderAttributeRow(stringResource(R.string.destination), order.destination)
+            OrderAttributeRow(stringResource(R.string.timestamp), Date(order.timestamp).toString())
 
-            OrderAttributeRow("Changelog")
+            OrderAttributeRow(stringResource(R.string.changelog))
             if (order.changelog.isNullOrEmpty()) {
                 Text(
-                    text = "No changes",
+                    text = stringResource(R.string.no_changes),
                     style = MaterialTheme.typography.bodyMedium
                 )
             } else {
@@ -136,7 +138,7 @@ fun OrderAttributeRow(label: String, value: String? = null) {
 fun ChangelogEntryView(entry: ChangelogEntry) {
     Column(modifier = Modifier.padding(vertical = 8.dp)) {
         Text(
-            text = "Change at: ${Date(entry.timestamp)}",
+            text = stringResource(R.string.change_at, Date(entry.timestamp)),
             style = MaterialTheme.typography.bodyMedium
         )
         Text(
